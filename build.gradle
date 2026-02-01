@@ -2,9 +2,13 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '4.0.2'
     id 'io.spring.dependency-management' version '1.1.7'
+    id("org.owasp.dependencycheck") version "12.1.9"
+    id 'checkstyle'
+    id("com.diffplug.spotless") version "8.1.0"
+    id 'jacoco'
 }
 
-group = 'org.uq'
+group = 'org.dabo'
 version = '0.0.1-SNAPSHOT'
 description = 'gestion-ERP'
 
@@ -37,4 +41,50 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+dependencyCheck {
+    nvd {
+        apiKey = System.getenv("NVD_API_KEY")
+    }
+    data {
+    }
+    analyzers {
+        assemblyEnabled = false
+    }
+    formats = ['HTML']
+}
+
+checkstyle {
+    toolVersion = "10.12.0"
+    configDirectory = file("config/checkstyle")
+}
+
+tasks.withType(Checkstyle) {
+    reports {
+        html.required = true
+        xml.required = false
+    }
+}
+
+spotless {
+    java {
+        target 'src/**/*.java'
+        googleJavaFormat('1.17.0')
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.11"  // Última versión estable
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    finalizedBy(tasks.named('jacocoTestReport')) // Ejecuta el reporte después de los tests
+}
+
+tasks.withType(Checkstyle).configureEach {
+    if (project.hasProperty("skipLint")) {
+        enabled = false
+    }
 }

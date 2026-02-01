@@ -1,0 +1,119 @@
+name: PR Review Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build Spring Boot
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build with Gradle (Free Tier Safe)
+        run: |
+          export GRADLE_OPTS="-Xmx512m -XX:MaxMetaspaceSize=128m -XX:+UseSerialGC"
+          ./gradlew clean build -x test --no-daemon --no-parallel --max-workers=1
+
+  test:
+    name: Run Tests
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Run Tests
+        run: |
+          export GRADLE_OPTS="-Xmx512m -XX:MaxMetaspaceSize=128m -XX:+UseSerialGC"
+          ./gradlew test --no-daemon --no-parallel --max-workers=1
+
+      - uses: dorny/test-reporter@v2
+        with:
+          name: Unit and Integration Tests
+          path: build/test-results/test/*.xml
+          reporter: java-junit
+
+  security_scan:
+    name: Security & Dependency Scan
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: OWASP Dependency Check
+        run: |
+          ./gradlew dependencyCheckAnalyze \
+            --no-daemon \
+            --no-parallel \
+            --max-workers=1 \
+            -Dorg.gradle.jvmargs="-Xmx512m"
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: build/reports/dependency-check-report.html
+
+  lint:
+    name: Code Style Linting
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Checkstyle
+        run: |
+          export GRADLE_OPTS="-Xmx512m"
+          ./gradlew checkstyleMain checkstyleTest --no-daemon --no-parallel --max-workers=1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: checkstyle-report
+          path: build/reports/checkstyle/
+  coverage:
+    name: Code Coverage
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Tests + Jacoco Coverage (Low Memory)
+        run: |
+          export GRADLE_OPTS="-Xmx512m -XX:MaxMetaspaceSize=128m -XX:+UseSerialGC"
+          ./gradlew clean test jacocoTestReport \
+            --no-daemon \
+            --no-parallel \
+            --max-workers=1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: build/reports/jacoco/
