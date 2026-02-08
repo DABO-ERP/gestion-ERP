@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: gestion-erp
+  
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/gestion_erp}
+    username: ${DATABASE_USERNAME:gestion_user}
+    password: ${DATABASE_PASSWORD:gestion_password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        '[format_sql]': false
+        '[use_sql_comments]': false
+    show-sql: false
+    open-in-view: false
+
+server:
+  port: ${SERVER_PORT:8081}
+  shutdown: graceful
+  error:
+    include-message: always
+    include-stacktrace: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+logging:
+  level:
+    com.daboerp.gestion: INFO
+    org.springframework.web: INFO
+    org.hibernate: WARN

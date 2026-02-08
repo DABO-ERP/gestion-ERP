@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: gestion-erp-db
+    environment:
+      POSTGRES_DB: gestion_erp
+      POSTGRES_USER: gestion_user
+      POSTGRES_PASSWORD: gestion_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gestion_user -d gestion_erp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gestion-network
+
+  # Gestion ERP Application
+  gestion-erp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gestion-erp-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DATABASE_URL: jdbc:postgresql://postgres:5432/gestion_erp
+      DATABASE_USERNAME: gestion_user
+      DATABASE_PASSWORD: gestion_password
+      SERVER_PORT: 8081
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - gestion-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  gestion-network:
+    driver: bridge
