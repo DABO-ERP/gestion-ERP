@@ -11,12 +11,16 @@ public class Bed {
     
     private final BedId id;
     private final Integer bedNumber;
-    private final Room room;
+    private Room room;
     
-    private Bed(BedId id, Integer bedNumber, Room room) {
+    private Bed(BedId id, Integer bedNumber, Room room, boolean allowNullRoom) {
         this.id = Objects.requireNonNull(id, "Bed ID cannot be null");
         this.bedNumber = Objects.requireNonNull(bedNumber, "Bed number cannot be null");
-        this.room = Objects.requireNonNull(room, "Room cannot be null");
+        if (!allowNullRoom) {
+            this.room = Objects.requireNonNull(room, "Room cannot be null");
+        } else {
+            this.room = room;
+        }
         
         if (bedNumber <= 0) {
             throw new IllegalArgumentException("Bed number must be positive");
@@ -25,11 +29,15 @@ public class Bed {
     
     public static Bed create(Integer bedNumber, Room room) {
         BedId id = BedId.generate();
-        return new Bed(id, bedNumber, room);
+        return new Bed(id, bedNumber, room, false);
     }
     
     public static Bed reconstitute(BedId id, Integer bedNumber, Room room) {
-        return new Bed(id, bedNumber, room);
+        return new Bed(id, bedNumber, room, true);
+    }
+    
+    void setRoom(Room room) {
+        this.room = room;
     }
     
     public BedId getId() {

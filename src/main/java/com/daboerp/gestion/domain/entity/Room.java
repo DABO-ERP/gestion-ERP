@@ -47,6 +47,9 @@ public class Room {
                                    List<Bed> beds, java.time.LocalDate createdAt) {
         Room room = new Room(id, roomNumber, roomType, roomStatus, amenities, createdAt);
         if (beds != null) {
+            for (Bed bed : beds) {
+                bed.setRoom(room);
+            }
             room.beds.addAll(beds);
         }
         return room;

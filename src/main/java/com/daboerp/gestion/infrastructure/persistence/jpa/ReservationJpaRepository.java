@@ -34,9 +34,11 @@ public interface ReservationJpaRepository extends JpaRepository<ReservationJpaEn
            "r.statusType IN ('CONFIRMED', 'CHECKED_IN')")
     List<ReservationJpaEntity> findActiveReservations();
     
-    List<ReservationJpaEntity> findByCheckIn(LocalDate date);
+    @Query("SELECT r FROM ReservationJpaEntity r WHERE r.checkIn = :date")
+    List<ReservationJpaEntity> findByCheckIn(@Param("date") LocalDate date);
     
-    List<ReservationJpaEntity> findByCheckOut(LocalDate date);
+    @Query("SELECT r FROM ReservationJpaEntity r WHERE r.checkOut = :date")
+    List<ReservationJpaEntity> findByCheckOut(@Param("date") LocalDate date);
     
     @Query("SELECT r FROM ReservationJpaEntity r WHERE " +
            "r.roomId = :roomId AND " +

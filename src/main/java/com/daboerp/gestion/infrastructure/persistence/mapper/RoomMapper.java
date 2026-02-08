@@ -49,6 +49,10 @@ public class RoomMapper {
     }
     
     public Room toDomainEntity(RoomJpaEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+        
         // Reconstitute room type
         RoomType roomType = RoomType.reconstitute(
             RoomTypeId.of(entity.getRoomTypeId()),
@@ -59,13 +63,15 @@ public class RoomMapper {
         );
         
         // Reconstitute beds (will be added to room after creation)
-        List<Bed> beds = entity.getBeds().stream()
-            .map(bedEntity -> Bed.reconstitute(
-                BedId.of(bedEntity.getId()),
-                bedEntity.getBedNumber(),
-                null // Room reference will be set during reconstitution
-            ))
-            .collect(Collectors.toList());
+        List<Bed> beds = (entity.getBeds() != null) ? 
+            entity.getBeds().stream()
+                .map(bedEntity -> Bed.reconstitute(
+                    BedId.of(bedEntity.getId()),
+                    bedEntity.getBedNumber(),
+                    null // Room reference will be set during reconstitution
+                ))
+                .collect(Collectors.toList())
+            : List.of();
         
         // Reconstitute room
         return Room.reconstitute(
@@ -73,7 +79,7 @@ public class RoomMapper {
             entity.getRoomNumber(),
             roomType,
             entity.getRoomStatus(),
-            entity.getAmenities(),
+            entity.getAmenities() != null ? entity.getAmenities() : List.of(),
             beds,
             entity.getCreatedAt()
         );
