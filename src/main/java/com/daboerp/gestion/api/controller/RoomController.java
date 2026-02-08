@@ -4,6 +4,13 @@ import com.daboerp.gestion.api.dto.*;
 import com.daboerp.gestion.application.usecase.room.*;
 import com.daboerp.gestion.domain.entity.Room;
 import com.daboerp.gestion.domain.entity.RoomType;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -19,6 +26,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/api/v1")
+@Tag(name = "Room Management", description = "APIs for managing rooms, room types, and availability")
 public class RoomController {
     
     private final CreateRoomTypeUseCase createRoomTypeUseCase;
@@ -37,6 +45,13 @@ public class RoomController {
     }
     
     @PostMapping("/room-types")
+    @Operation(summary = "Create a new room type", description = "Define a new room type with pricing and capacity")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Room type created successfully",
+            content = @Content(schema = @Schema(implementation = RoomTypeResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input"),
+        @ApiResponse(responseCode = "409", description = "Room type already exists with this name")
+    })
     public ResponseEntity<RoomTypeResponse> createRoomType(@Valid @RequestBody CreateRoomTypeRequest request) {
         var command = new CreateRoomTypeUseCase.CreateRoomTypeCommand(
             request.name(),
@@ -50,6 +65,14 @@ public class RoomController {
     }
     
     @PostMapping("/rooms")
+    @Operation(summary = "Create a new room", description = "Add a new room to the inventory")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Room created successfully",
+            content = @Content(schema = @Schema(implementation = RoomResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input"),
+        @ApiResponse(responseCode = "404", description = "Room type not found"),
+        @ApiResponse(responseCode = "409", description = "Room number already exists")
+    })
     public ResponseEntity<RoomResponse> createRoom(@Valid @RequestBody CreateRoomRequest request) {
         var command = new CreateRoomUseCase.CreateRoomCommand(
             request.roomNumber(),
@@ -63,6 +86,10 @@ public class RoomController {
     }
     
     @GetMapping("/rooms")
+    @Operation(summary = "List all rooms", description = "Get a complete list of all rooms in the system")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "List retrieved successfully")
+    })
     public ResponseEntity<List<RoomResponse>> listRooms() {
         List<Room> rooms = listRoomsUseCase.execute();
         List<RoomResponse> response = rooms.stream()
@@ -72,10 +99,14 @@ public class RoomController {
     }
     
     @GetMapping("/rooms/available")
+    @Operation(summary = "Find available rooms", description = "Search for rooms available in a specific date range with optional capacity filter")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Available rooms found")
+    })
     public ResponseEntity<List<RoomResponse>> findAvailableRooms(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkIn,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOut,
-            @RequestParam(required = false) Integer minCapacity) {
+            @Parameter(description = "Check-in date (YYYY-MM-DD)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkIn,
+            @Parameter(description = "Check-out date (YYYY-MM-DD)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOut,
+            @Parameter(description = "Minimum capacity required") @RequestParam(required = false) Integer minCapacity) {
         
         var query = new FindAvailableRoomsUseCase.FindAvailableRoomsQuery(
             checkIn,

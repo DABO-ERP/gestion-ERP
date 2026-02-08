@@ -4,6 +4,13 @@ import com.daboerp.gestion.api.dto.CreateReservationRequest;
 import com.daboerp.gestion.api.dto.ReservationResponse;
 import com.daboerp.gestion.application.usecase.reservation.*;
 import com.daboerp.gestion.domain.entity.Reservation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -19,6 +26,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/api/v1/reservations")
+@Tag(name = "Reservation Management", description = "APIs for managing reservations, check-ins, and check-outs")
 public class ReservationController {
     
     private final CreateReservationUseCase createReservationUseCase;
@@ -37,6 +45,14 @@ public class ReservationController {
     }
     
     @PostMapping
+    @Operation(summary = "Create a new reservation", description = "Book a room for a guest")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Reservation created successfully",
+            content = @Content(schema = @Schema(implementation = ReservationResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input"),
+        @ApiResponse(responseCode = "404", description = "Guest or room not found"),
+        @ApiResponse(responseCode = "422", description = "Room not available for selected dates")
+    })
     public ResponseEntity<ReservationResponse> createReservation(
             @Valid @RequestBody CreateReservationRequest request) {
         var command = new CreateReservationUseCase.CreateReservationCommand(
@@ -54,10 +70,14 @@ public class ReservationController {
     }
     
     @GetMapping
+    @Operation(summary = "List reservations", description = "Get all reservations with optional filters")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "List retrieved successfully")
+    })
     public ResponseEntity<List<ReservationResponse>> listReservations(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(required = false) String filter) {
+            @Parameter(description = "Start date for filtering (YYYY-MM-DD)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @Parameter(description = "End date for filtering (YYYY-MM-DD)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @Parameter(description = "Filter: 'active' for active reservations only") @RequestParam(required = false) String filter) {
         List<Reservation> reservations;
         
         if ("active".equalsIgnoreCase(filter)) {
@@ -76,14 +96,30 @@ public class ReservationController {
     }
     
     @PostMapping("/{id}/check-in")
-    public ResponseEntity<ReservationResponse> checkIn(@PathVariable String id) {
+    @Operation(summary = "Check-in a reservation", description = "Mark a reservation as checked in")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Check-in successful",
+            content = @Content(schema = @Schema(implementation = ReservationResponse.class))),
+        @ApiResponse(responseCode = "404", description = "Reservation not found"),
+        @ApiResponse(responseCode = "422", description = "Invalid reservation state for check-in")
+    })
+    public ResponseEntity<ReservationResponse> checkIn(
+            @Parameter(description = "Reservation ID") @PathVariable String id) {
         var command = new CheckInReservationUseCase.CheckInCommand(id, LocalDate.now());
         Reservation reservation = checkInReservationUseCase.execute(command);
         return ResponseEntity.ok(toResponse(reservation));
     }
     
     @PostMapping("/{id}/check-out")
-    public ResponseEntity<ReservationResponse> checkOut(@PathVariable String id) {
+    @Operation(summary = "Check-out a reservation", description = "Mark a reservation as checked out")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Check-out successful",
+            content = @Content(schema = @Schema(implementation = ReservationResponse.class))),
+        @ApiResponse(responseCode = "404", description = "Reservation not found"),
+        @ApiResponse(responseCode = "422", description = "Invalid reservation state for check-out")
+    })
+    public ResponseEntity<ReservationResponse> checkOut(
+            @Parameter(description = "Reservation ID") @PathVariable String id) {
         var command = new CheckOutReservationUseCase.CheckOutCommand(id, LocalDate.now());
         Reservation reservation = checkOutReservationUseCase.execute(command);
         return ResponseEntity.ok(toResponse(reservation));
