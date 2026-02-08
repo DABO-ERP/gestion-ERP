@@ -20,18 +20,20 @@ echo ""
 
 # Test 2: Create a Guest
 echo "2️⃣  Creating a new guest..."
+# Use timestamp to avoid email conflicts
+timestamp=$(date +%s)
 guest_response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "$BASE_URL/guests" \
   -H "Content-Type: application/json" \
-  -d '{
-    "firstName": "Juan",
-    "lastName": "Perez",
-    "email": "juan.perez@example.com",
-    "phone": "+57-300-1234567",
-    "dateOfBirth": "1985-03-20",
-    "nationality": "COLOMBIA",
-    "documentNumber": "CC-123456789",
-    "documentType": "NATIONAL_ID"
-  }')
+  -d "{
+    \"firstName\": \"Juan\",
+    \"lastName\": \"Test\",
+    \"email\": \"juan.test${timestamp}@example.com\",
+    \"phone\": \"+57-300-1234567\",
+    \"dateOfBirth\": \"1985-03-20\",
+    \"nationality\": \"COLOMBIA\",
+    \"documentNumber\": \"CC-${timestamp}\",
+    \"documentType\": \"NATIONAL_ID\"
+  }")
 http_code=$(echo "$guest_response" | grep HTTP_STATUS | cut -d: -f2)
 guest_body=$(echo "$guest_response" | sed '$d')
 if [ "$http_code" = "201" ]; then
@@ -68,20 +70,22 @@ else
 fi
 echo ""
 
-# Test 5: Create a Room Type (first check if one exists)
+# Test 5: Create a Room Type
 echo "5️⃣  Creating a room type..."
+# Use timestamp to create unique room type name
+roomtype_name="Test Room Type $(date +%s)"
 roomtype_response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "$BASE_URL/room-types" \
   -H "Content-Type: application/json" \
-  -d '{
-    "name": "Standard Room",
-    "description": "Comfortable standard room",
-    "maxOccupancy": 2,
-    "basePrice": 100.00
-  }')
+  -d "{
+    \"name\": \"${roomtype_name}\",
+    \"description\": \"Comfortable test room\",
+    \"maxOccupancy\": 2,
+    \"basePrice\": 100.00
+  }")
 http_code=$(echo "$roomtype_response" | grep HTTP_STATUS | cut -d: -f2)
 roomtype_body=$(echo "$roomtype_response" | sed '$d')
 if [ "$http_code" = "201" ] || [ "$http_code" = "200" ]; then
-    echo "✅ Room type created/exists"
+    echo "✅ Room type created successfully"
     roomtype_id=$(echo "$roomtype_body" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
     echo "   Room Type ID: $roomtype_id"
 else
@@ -91,27 +95,34 @@ fi
 echo ""
 
 # Test 6: Create a Room
-echo "6️⃣  Creating a room..."
-# Use existing room type from seed data
-room_response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "$BASE_URL/rooms" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "roomNumber": 501,
-    "roomTypeId": "rt-001",
-    "amenities": ["BATHROOM", "WIFI", "TELEVISION"],
-    "numberOfBeds": 2
-  }')
-http_code=$(echo "$room_response" | grep HTTP_STATUS | cut -d: -f2)
-room_body=$(echo "$room_response" | sed '$d')
-if [ "$http_code" = "201" ] || [ "$http_code" = "200" ]; then
-    echo "✅ Room created successfully"
-    room_id=$(echo "$room_body" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-    echo "   Room ID: $room_id"
+if [ -n "$roomtype_id" ]; then
+    echo "6️⃣  Creating a room..."
+    # Use the room type created in test 5 and generate unique room number
+    room_number=$((500 + $(date +%s) % 1000))
+    room_response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "$BASE_URL/rooms" \
+      -H "Content-Type: application/json" \
+      -d "{
+        \"roomNumber\": ${room_number},
+        \"roomTypeId\": \"${roomtype_id}\",
+        \"amenities\": [\"BATHROOM\", \"WIFI\", \"TELEVISION\"],
+        \"numberOfBeds\": 2
+      }")
+    http_code=$(echo "$room_response" | grep HTTP_STATUS | cut -d: -f2)
+    room_body=$(echo "$room_response" | sed '$d')
+    if [ "$http_code" = "201" ] || [ "$http_code" = "200" ]; then
+        echo "✅ Room created successfully"
+        room_id=$(echo "$room_body" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+        echo "   Room ID: $room_id"
+        echo "   Room Number: $room_number"
+    else
+        echo "❌ Room creation failed with status $http_code"
+        echo "   Response: $room_body"
+    fi
+    echo ""
 else
-    echo "⚠️  Room creation status $http_code (might already exist)"
-    echo "   Response: $room_body"
+    echo "6️⃣  Skipping room creation - no room type available"
+    echo ""
 fi
-echo ""
 
 # Test 7: List All Rooms
 echo "7️⃣  Listing all rooms..."
@@ -136,7 +147,7 @@ fi
 echo ""
 
 # Test 9: Create a Reservation
-if [ -n "$guest_id" ]; then
+if [ -n "$guest_id" ] && [ -n "$room_id" ]; then
     echo "9️⃣  Creating a reservation..."
     reservation_response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "$BASE_URL/reservations" \
       -H "Content-Type: application/json" \
@@ -145,8 +156,8 @@ if [ -n "$guest_id" ]; then
         \"checkOut\": \"2026-03-15\",
         \"quotedAmount\": 500.00,
         \"source\": \"DIRECT\",
-        \"guestPrincipalId\": \"$guest_id\",
-        \"roomId\": \"room-001\",
+        \"guestPrincipalId\": \"${guest_id}\",
+        \"roomId\": \"${room_id}\",
         \"additionalGuestIds\": []
       }")
     http_code=$(echo "$reservation_response" | grep HTTP_STATUS | cut -d: -f2)
@@ -156,8 +167,15 @@ if [ -n "$guest_id" ]; then
         reservation_id=$(echo "$reservation_body" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
         echo "   Reservation ID: $reservation_id"
     else
-        echo "⚠️  Reservation creation status $http_code"
+        echo "❌ Reservation creation failed with status $http_code"
         echo "   Response: $reservation_body"
+    fi
+    echo ""
+else
+    if [ -z "$guest_id" ]; then
+        echo "9️⃣  Skipping reservation - no guest available"
+    else
+        echo "9️⃣  Skipping reservation - no room available"
     fi
     echo ""
 fi
