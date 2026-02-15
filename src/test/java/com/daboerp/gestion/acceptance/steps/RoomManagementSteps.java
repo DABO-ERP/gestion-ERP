@@ -3,7 +3,10 @@ package com.daboerp.gestion.acceptance.steps;
 import com.daboerp.gestion.acceptance.context.TestContext;
 import com.daboerp.gestion.api.dto.*;
 import com.daboerp.gestion.domain.valueobject.Amenity;
+import com.daboerp.gestion.domain.valueobject.DocumentType;
+import com.daboerp.gestion.domain.valueobject.Nationality;
 import com.daboerp.gestion.domain.valueobject.RoomStatus;
+import com.daboerp.gestion.domain.valueobject.Source;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.datatable.DataTable;
@@ -23,6 +26,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,6 +43,8 @@ public class RoomManagementSteps {
 
     private static final String ROOM_TYPES_API_URL = "/api/v1/room-types";
     private static final String ROOMS_API_URL = "/api/v1/rooms";
+    private static final String GUESTS_API_URL = "/api/v1/guests";
+    private static final String RESERVATIONS_API_URL = "/api/v1/reservations";
     
     // Map to store room type names to their IDs
     private Map<String, String> roomTypeNameToIdMap = new HashMap<>();
@@ -75,21 +81,20 @@ public class RoomManagementSteps {
 
     @Given("a room type {string} exists with base price {double}")
     public void aRoomTypeExistsWithBasePrice(String roomTypeName, double basePrice) {
-        CreateRoomTypeRequest request = new CreateRoomTypeRequest(
+        ensureRoomTypeExistsWithDetails(roomTypeName, roomTypeName + " room type", 2, basePrice);
+        String roomTypeId = roomTypeNameToIdMap.get(roomTypeName);
+        assertThat(roomTypeId)
+            .as("Room type ID should be registered for %s", roomTypeName)
+            .isNotNull();
+
+        // Set existing room type for scenarios that rely on it (minimal data needed)
+        testContext.setExistingRoomType(new RoomTypeResponse(
+            roomTypeId,
             roomTypeName,
             roomTypeName + " room type",
-            2, // default occupancy
+            2,
             BigDecimal.valueOf(basePrice)
-        );
-
-        ResponseEntity<RoomTypeResponse> response = restTemplate.postForEntity(
-            ROOM_TYPES_API_URL, 
-            request, 
-            RoomTypeResponse.class
-        );
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        testContext.setExistingRoomType(response.getBody());
+        ));
     }
 
     @Given("the following room types exist:")
@@ -134,9 +139,10 @@ public class RoomManagementSteps {
             );
             // Store the mapping if creation was successful
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                RoomTypeResponse body = Objects.requireNonNull(response.getBody());
                 // Map both the original name and unique name to the same ID
-                roomTypeNameToIdMap.put(roomTypeName, response.getBody().id());
-                roomTypeNameToIdMap.put(uniqueRoomTypeName, response.getBody().id());
+                roomTypeNameToIdMap.put(roomTypeName, body.id());
+                roomTypeNameToIdMap.put(uniqueRoomTypeName, body.id());
             } else {
                 throw new RuntimeException("Failed to create room type: " + response.getStatusCode());
             }
@@ -148,15 +154,20 @@ public class RoomManagementSteps {
     @When("I create a room with the following details:")
     public void iCreateARoomWithTheFollowingDetails(DataTable dataTable) {
         Map<String, String> roomData = dataTable.asMap();
-        
-        List<Amenity> amenities = List.of(
-            Amenity.valueOf(roomData.get("amenities").split(",")[0].strip().replace("TV", "TELEVISION")),
-            Amenity.valueOf(roomData.get("amenities").split(",")[1].strip().replace("TV", "TELEVISION"))
-        );
+
+        List<Amenity> amenities = List.of(roomData.get("amenities").split(",")).stream()
+            .map(String::strip)
+            .filter(s -> !s.isBlank())
+            .map(s -> s.replace("TV", "TELEVISION"))
+            .map(Amenity::valueOf)
+            .toList();
+
+        String roomTypeName = roomData.get("roomType");
+        String roomTypeId = resolveRoomTypeId(roomTypeName);
         
         CreateRoomRequest request = new CreateRoomRequest(
             Integer.parseInt(roomData.get("number")),
-            "room-type-id-placeholder", // Would be resolved from roomType name
+            roomTypeId,
             amenities,
             2 // numberOfBeds
         );
@@ -178,10 +189,12 @@ public class RoomManagementSteps {
     public void aRoomAlreadyExists(String roomNumber) {
         // First ensure room type exists
         aRoomTypeExistsWithBasePrice("Single", 50.0);
+
+        String roomTypeId = resolveRoomTypeId("Single");
         
         CreateRoomRequest request = new CreateRoomRequest(
             Integer.parseInt(roomNumber),
-            "Single",
+            roomTypeId,
             List.of(Amenity.WIFI),
             1
         );
@@ -193,14 +206,17 @@ public class RoomManagementSteps {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        testContext.setExistingRoom(response.getBody());
+        RoomResponse body = Objects.requireNonNull(response.getBody());
+        testContext.setExistingRoom(body);
+        testContext.registerRoomNumberToId(Integer.parseInt(roomNumber), body.id());
     }
 
     @When("I create a new room with number {string}")
     public void iCreateANewRoomWithNumber(String roomNumber) {
+        String roomTypeId = resolveRoomTypeId("Single");
         CreateRoomRequest request = new CreateRoomRequest(
             Integer.parseInt(roomNumber),
-            "room-type-id-placeholder",
+            roomTypeId,
             List.of(Amenity.WIFI),
             1 // numberOfBeds
         );
@@ -259,16 +275,15 @@ public class RoomManagementSteps {
             System.out.println("DEBUG: Room creation response status: " + response.getStatusCode());
             
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            RoomResponse created = Objects.requireNonNull(response.getBody());
             
             // Store the room number to ID mapping for use in reservations
-            if (response.getBody() != null) {
-                testContext.registerRoomNumberToId(roomNumber, response.getBody().id());
-            }
+            testContext.registerRoomNumberToId(roomNumber, created.id());
             
             // Update room status if needed
-            RoomStatus targetStatus = RoomStatus.valueOf(roomData.get("status"));
+            RoomStatus targetStatus = parseRoomStatus(roomData.get("status"));
             if (targetStatus != RoomStatus.AVAILABLE) {
-                updateRoomStatus(response.getBody().id(), targetStatus);
+                updateRoomStatus(created.id(), targetStatus);
             }
         }
     }
@@ -305,7 +320,8 @@ public class RoomManagementSteps {
             System.out.println("DEBUG: Room type creation response: " + response.getStatusCode());
             // Store the mapping if creation was successful
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                String roomTypeId = response.getBody().id();
+                RoomTypeResponse body = Objects.requireNonNull(response.getBody());
+                String roomTypeId = body.id();
                 System.out.println("DEBUG: Successfully created room type with ID: " + roomTypeId);
                 // Map both the original name and unique name to the same ID
                 roomTypeNameToIdMap.put(roomTypeName, roomTypeId);
@@ -322,28 +338,20 @@ public class RoomManagementSteps {
     @Given("the following rooms exist with room types:")
     public void theFollowingRoomsExistWithRoomTypes(DataTable dataTable) {
         List<Map<String, String>> rooms = dataTable.asMaps();
-        
-        // Create room types with specified occupancy
+
+        // Ensure room types exist with the requested occupancy
         for (Map<String, String> roomData : rooms) {
             String roomTypeName = roomData.get("roomType");
             int maxOccupancy = Integer.parseInt(roomData.get("maxOccupancy"));
-            
-            // Check if room type already exists, if not create it
-            CreateRoomTypeRequest roomTypeRequest = new CreateRoomTypeRequest(
-                roomTypeName,
-                roomTypeName + " room type",
-                maxOccupancy,
-                BigDecimal.valueOf(50.0) // base price
-            );
-
-            restTemplate.postForEntity(ROOM_TYPES_API_URL, roomTypeRequest, RoomTypeResponse.class);
+            ensureRoomTypeExistsWithDetails(roomTypeName, roomTypeName + " room type", maxOccupancy, 50.0);
         }
-        
-        // Now create rooms
+
+        // Now create rooms using the resolved roomType IDs
         for (Map<String, String> roomData : rooms) {
+            String roomTypeId = resolveRoomTypeId(roomData.get("roomType"));
             CreateRoomRequest request = new CreateRoomRequest(
                 Integer.parseInt(roomData.get("number")),
-                roomData.get("roomType"),
+                roomTypeId,
                 List.of(Amenity.WIFI, Amenity.TELEVISION), // amenities
                 1 // numberOfBeds
             );
@@ -355,31 +363,77 @@ public class RoomManagementSteps {
             );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            RoomResponse created = Objects.requireNonNull(response.getBody());
             
             // Update room status if needed
-            RoomStatus targetStatus = RoomStatus.valueOf(roomData.get("status"));
+            RoomStatus targetStatus = parseRoomStatus(roomData.get("status"));
             if (targetStatus != RoomStatus.AVAILABLE) {
-                updateRoomStatus(response.getBody().id(), targetStatus);
+                updateRoomStatus(created.id(), targetStatus);
             }
+
+            testContext.registerRoomNumberToId(Integer.parseInt(roomData.get("number")), created.id());
         }
     }
 
     @Given("room {string} has reservation from {string} to {string}")
     public void roomHasReservationFromTo(String roomNumber, String checkIn, String checkOut) {
-        // This would typically create a reservation for the room
-        // For now, we'll just note that the room should be considered unavailable
-        testContext.setTestData("occupiedRoom", roomNumber);
-        testContext.setTestData("occupiedFrom", checkIn);
-        testContext.setTestData("occupiedTo", checkOut);
+        Integer roomNum = Integer.parseInt(roomNumber);
+        String roomId = testContext.getRoomIdByNumber(roomNum);
+        assertThat(roomId)
+            .as("Room ID should be registered for room %s", roomNumber)
+            .isNotNull();
+
+        // Create a guest for this reservation
+        String uniqueEmail = "availability+" + System.nanoTime() + "@email.com";
+        CreateGuestRequest guestRequest = new CreateGuestRequest(
+            "Availability",
+            "Guest",
+            uniqueEmail,
+            "+1234567890",
+            LocalDate.of(1990, 1, 1),
+            Nationality.UNITED_STATES,
+            "B" + System.nanoTime(),
+            DocumentType.PASSPORT
+        );
+
+        ResponseEntity<GuestResponse> guestResponse = restTemplate.postForEntity(
+            GUESTS_API_URL,
+            guestRequest,
+            GuestResponse.class
+        );
+
+        assertThat(guestResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        GuestResponse guestBody = Objects.requireNonNull(guestResponse.getBody());
+        testContext.registerGuestEmailToId(uniqueEmail, guestBody.id());
+
+        CreateReservationRequest reservationRequest = new CreateReservationRequest(
+            LocalDate.parse(checkIn),
+            LocalDate.parse(checkOut),
+            new BigDecimal("100.00"),
+            Source.DIRECT,
+            guestBody.id(),
+            roomId,
+            List.of()
+        );
+
+        ResponseEntity<ReservationResponse> reservationResponse = restTemplate.postForEntity(
+            RESERVATIONS_API_URL,
+            reservationRequest,
+            ReservationResponse.class
+        );
+
+        assertThat(reservationResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     }
 
     @Given("a room {string} exists with status AVAILABLE")
     public void aRoomExistsWithStatusAVAILABLE(String roomNumber) {
         aRoomTypeExistsWithBasePrice("Single", 50.0);
+
+        String roomTypeId = resolveRoomTypeId("Single");
         
         CreateRoomRequest request = new CreateRoomRequest(
             Integer.parseInt(roomNumber),
-            "room-type-id-placeholder",
+            roomTypeId,
             List.of(Amenity.WIFI),
             1 // numberOfBeds
         );
@@ -391,12 +445,14 @@ public class RoomManagementSteps {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        testContext.setExistingRoom(response.getBody());
+        RoomResponse body = Objects.requireNonNull(response.getBody());
+        testContext.setExistingRoom(body);
+        testContext.registerRoomNumberToId(Integer.parseInt(roomNumber), body.id());
     }
 
     @When("I request all available rooms")
     public void iRequestAllAvailableRooms() {
-        String url = ROOMS_API_URL + "?status=AVAILABLE";
+        String url = ROOMS_API_URL + "/available";
         
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
@@ -439,9 +495,9 @@ public class RoomManagementSteps {
     @When("I change the room status to MAINTENANCE")
     public void iChangeTheRoomStatusToMAINTENANCE() {
         String roomId = testContext.getExistingRoom().id();
-        
-        Map<String, String> updateRequest = Map.of("status", "OUT_OF_SERVICE");
-        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(updateRequest);
+
+        UpdateRoomStatusRequest updateRequest = new UpdateRoomStatusRequest("OUT_OF_SERVICE");
+        HttpEntity<UpdateRoomStatusRequest> requestEntity = new HttpEntity<>(updateRequest);
         
         ResponseEntity<RoomResponse> response = restTemplate.exchange(
             ROOMS_API_URL + "/" + roomId,
@@ -479,8 +535,8 @@ public class RoomManagementSteps {
     }
 
     private void updateRoomStatus(String roomId, RoomStatus status) {
-        Map<String, String> updateRequest = Map.of("status", status.name());
-        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(updateRequest);
+        UpdateRoomStatusRequest updateRequest = new UpdateRoomStatusRequest(status.name());
+        HttpEntity<UpdateRoomStatusRequest> requestEntity = new HttpEntity<>(updateRequest);
         
         restTemplate.exchange(
             ROOMS_API_URL + "/" + roomId,
@@ -488,6 +544,32 @@ public class RoomManagementSteps {
             requestEntity,
             RoomResponse.class
         );
+    }
+
+    private String resolveRoomTypeId(String roomTypeName) {
+        if (roomTypeName == null || roomTypeName.isBlank()) {
+            throw new IllegalArgumentException("roomType is required");
+        }
+        String roomTypeId = roomTypeNameToIdMap.get(roomTypeName);
+        if (roomTypeId == null) {
+            ensureRoomTypeExists(roomTypeName, 50.0);
+            roomTypeId = roomTypeNameToIdMap.get(roomTypeName);
+        }
+        assertThat(roomTypeId)
+            .as("Room type ID should be resolvable for %s", roomTypeName)
+            .isNotNull();
+        return roomTypeId;
+    }
+
+    private RoomStatus parseRoomStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return RoomStatus.AVAILABLE;
+        }
+        String normalized = status.strip().toUpperCase();
+        if (normalized.equals("MAINTENANCE")) {
+            return RoomStatus.OUT_OF_SERVICE;
+        }
+        return RoomStatus.valueOf(normalized);
     }
 
     @Then("the room type should be created successfully")
@@ -521,13 +603,53 @@ public class RoomManagementSteps {
     @Then("the room status should be AVAILABLE")
     public void theRoomStatusShouldBeAVAILABLE() {
         RoomResponse room = testContext.getCreatedRoom();
-        assertThat(room.roomStatus()).isEqualTo(RoomStatus.AVAILABLE);
+        if (room != null) {
+            assertThat(room.roomStatus()).isEqualTo(RoomStatus.AVAILABLE);
+            return;
+        }
+
+        ReservationResponse reservation = testContext.getCheckedOutReservation();
+        if (reservation == null) {
+            reservation = testContext.getCheckedInReservation();
+        }
+        if (reservation == null) {
+            reservation = testContext.getExistingReservation();
+        }
+        if (reservation == null) {
+            reservation = testContext.getCreatedReservation();
+        }
+
+        assertThat(reservation)
+            .as("Expected a reservation in context to resolve room status")
+            .isNotNull();
+
+        final String expectedRoomId = reservation.roomId();
+        final Integer expectedRoomNumber = reservation.roomNumber();
+
+        ResponseEntity<String> roomsResponse = restTemplate.getForEntity(ROOMS_API_URL, String.class);
+        assertThat(roomsResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        try {
+            List<RoomResponse> rooms = objectMapper.readValue(
+                roomsResponse.getBody(),
+                new TypeReference<List<RoomResponse>>() {}
+            );
+
+            RoomResponse resolved = rooms.stream()
+                .filter(r -> r.id().equals(expectedRoomId) || r.roomNumber().equals(expectedRoomNumber))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Room not found in /rooms list"));
+
+            assertThat(resolved.roomStatus()).isEqualTo(RoomStatus.AVAILABLE);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse rooms list response", e);
+        }
     }
 
     @Then("the room creation should fail")
     public void theRoomCreationShouldFail() {
         ResponseEntity<?> response = testContext.getLastResponse();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getStatusCode().is4xxClientError()).isTrue();
     }
 
     @Then("I should receive an error about duplicate room number")

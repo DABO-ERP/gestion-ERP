@@ -8,6 +8,7 @@ import com.daboerp.gestion.domain.entity.Room;
 import com.daboerp.gestion.domain.repository.GuestRepository;
 import com.daboerp.gestion.domain.repository.ReservationRepository;
 import com.daboerp.gestion.domain.repository.RoomRepository;
+import com.daboerp.gestion.domain.strategy.pricing.PricingContext;
 import com.daboerp.gestion.domain.valueobject.GuestId;
 import com.daboerp.gestion.domain.valueobject.RoomId;
 import com.daboerp.gestion.domain.valueobject.Source;
@@ -25,13 +26,16 @@ public class CreateReservationUseCase {
     private final ReservationRepository reservationRepository;
     private final GuestRepository guestRepository;
     private final RoomRepository roomRepository;
+    private final PricingContext pricingContext;
     
     public CreateReservationUseCase(ReservationRepository reservationRepository,
                                    GuestRepository guestRepository,
-                                   RoomRepository roomRepository) {
+                                   RoomRepository roomRepository,
+                                   PricingContext pricingContext) {
         this.reservationRepository = Objects.requireNonNull(reservationRepository, "Reservation repository cannot be null");
         this.guestRepository = Objects.requireNonNull(guestRepository, "Guest repository cannot be null");
         this.roomRepository = Objects.requireNonNull(roomRepository, "Room repository cannot be null");
+        this.pricingContext = Objects.requireNonNull(pricingContext, "Pricing context cannot be null");
     }
     
     public Reservation execute(CreateReservationCommand command) {
@@ -79,6 +83,9 @@ public class CreateReservationUseCase {
             guest,
             room
         );
+
+        // Calculate and apply final price using configured pricing strategies
+        reservation.updateQuotedAmount(pricingContext.calculatePrice(reservation));
         
         // Add additional guests
         if (command.additionalGuestIds() != null) {

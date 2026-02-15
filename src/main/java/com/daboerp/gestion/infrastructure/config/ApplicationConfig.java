@@ -100,6 +100,11 @@ public class ApplicationConfig {
     public FindAvailableRoomsUseCase findAvailableRoomsUseCase(RoomRepository roomRepository) {
         return new FindAvailableRoomsUseCase(roomRepository);
     }
+
+    @Bean
+    public UpdateRoomStatusUseCase updateRoomStatusUseCase(RoomRepository roomRepository) {
+        return new UpdateRoomStatusUseCase(roomRepository);
+    }
     
     @Bean
     public CreateRoomTypeUseCase createRoomTypeUseCase(RoomTypeRepository roomTypeRepository) {
@@ -112,8 +117,9 @@ public class ApplicationConfig {
     public CreateReservationUseCase createReservationUseCase(
             ReservationRepository reservationRepository,
             GuestRepository guestRepository,
-            RoomRepository roomRepository) {
-        return new CreateReservationUseCase(reservationRepository, guestRepository, roomRepository);
+            RoomRepository roomRepository,
+            PricingContext pricingContext) {
+        return new CreateReservationUseCase(reservationRepository, guestRepository, roomRepository, pricingContext);
     }
     
     @Bean
@@ -122,13 +128,15 @@ public class ApplicationConfig {
     }
     
     @Bean
-    public CheckInReservationUseCase checkInReservationUseCase(ReservationRepository reservationRepository) {
-        return new CheckInReservationUseCase(reservationRepository);
+    public CheckInReservationUseCase checkInReservationUseCase(ReservationRepository reservationRepository,
+                                                              RoomRepository roomRepository) {
+        return new CheckInReservationUseCase(reservationRepository, roomRepository);
     }
     
     @Bean
-    public CheckOutReservationUseCase checkOutReservationUseCase(ReservationRepository reservationRepository) {
-        return new CheckOutReservationUseCase(reservationRepository);
+    public CheckOutReservationUseCase checkOutReservationUseCase(ReservationRepository reservationRepository,
+                                                                RoomRepository roomRepository) {
+        return new CheckOutReservationUseCase(reservationRepository, roomRepository);
     }
     
     @Bean

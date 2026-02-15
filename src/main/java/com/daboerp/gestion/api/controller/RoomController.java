@@ -4,6 +4,7 @@ import com.daboerp.gestion.api.dto.*;
 import com.daboerp.gestion.application.usecase.room.*;
 import com.daboerp.gestion.domain.entity.Room;
 import com.daboerp.gestion.domain.entity.RoomType;
+import com.daboerp.gestion.domain.valueobject.RoomStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,15 +34,18 @@ public class RoomController {
     private final CreateRoomUseCase createRoomUseCase;
     private final ListRoomsUseCase listRoomsUseCase;
     private final FindAvailableRoomsUseCase findAvailableRoomsUseCase;
+    private final UpdateRoomStatusUseCase updateRoomStatusUseCase;
     
     public RoomController(CreateRoomTypeUseCase createRoomTypeUseCase,
                          CreateRoomUseCase createRoomUseCase,
                          ListRoomsUseCase listRoomsUseCase,
-                         FindAvailableRoomsUseCase findAvailableRoomsUseCase) {
+                         FindAvailableRoomsUseCase findAvailableRoomsUseCase,
+                         UpdateRoomStatusUseCase updateRoomStatusUseCase) {
         this.createRoomTypeUseCase = createRoomTypeUseCase;
         this.createRoomUseCase = createRoomUseCase;
         this.listRoomsUseCase = listRoomsUseCase;
         this.findAvailableRoomsUseCase = findAvailableRoomsUseCase;
+        this.updateRoomStatusUseCase = updateRoomStatusUseCase;
     }
     
     @PostMapping("/room-types")
@@ -96,6 +100,23 @@ public class RoomController {
             .map(this::toRoomResponse)
             .collect(Collectors.toList());
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/rooms/{id}")
+    @Operation(summary = "Update room status", description = "Update the operational status of a room")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Room status updated successfully",
+            content = @Content(schema = @Schema(implementation = RoomResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input"),
+        @ApiResponse(responseCode = "404", description = "Room not found")
+    })
+    public ResponseEntity<RoomResponse> updateRoomStatus(
+            @Parameter(description = "Room ID") @PathVariable String id,
+            @Valid @RequestBody UpdateRoomStatusRequest request) {
+        RoomStatus status = RoomStatus.valueOf(request.status());
+        var command = new UpdateRoomStatusUseCase.UpdateRoomStatusCommand(id, status);
+        Room updated = updateRoomStatusUseCase.execute(command);
+        return ResponseEntity.ok(toRoomResponse(updated));
     }
     
     @GetMapping("/rooms/available")

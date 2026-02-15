@@ -33,8 +33,15 @@ public class FindAvailableRoomsUseCase {
             return roomRepository.findAvailableRooms(query.checkIn(), query.checkOut());
         }
         
-        // Return currently available rooms
-        return roomRepository.findByStatus(RoomStatus.AVAILABLE);
+        // No date range provided: return currently available rooms, optionally filtered by capacity
+        List<Room> available = roomRepository.findByStatus(RoomStatus.AVAILABLE);
+        if (query.minCapacity() != null && query.minCapacity() > 0) {
+            int minCapacity = query.minCapacity();
+            return available.stream()
+                .filter(room -> room.getRoomType().getMaxOccupancy() >= minCapacity)
+                .toList();
+        }
+        return available;
     }
     
     public record FindAvailableRoomsQuery(
