@@ -89,6 +89,21 @@ public class GuestFactory implements EntityFactory<Guest, GuestFactory.GuestBuil
                     throw new IllegalArgumentException("National ID must be between 8 and 15 characters");
                 }
             }
+            case IDENTITY_CARD -> {
+                if (documentNumber.length() < 6 || documentNumber.length() > 20) {
+                    throw new IllegalArgumentException("Identity card number must be between 6 and 20 characters");
+                }
+            }
+            case CIVIL_REGISTRY -> {
+                if (documentNumber.length() < 8 || documentNumber.length() > 25) {
+                    throw new IllegalArgumentException("Civil registry number must be between 8 and 25 characters");
+                }
+            }
+            case FOREIGN_ID -> {
+                if (documentNumber.length() < 6 || documentNumber.length() > 20) {
+                    throw new IllegalArgumentException("Foreign ID number must be between 6 and 20 characters");
+                }
+            }
         }
     }
     
