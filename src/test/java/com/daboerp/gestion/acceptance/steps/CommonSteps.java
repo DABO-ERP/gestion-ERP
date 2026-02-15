@@ -40,6 +40,8 @@ public class CommonSteps {
         // Clean tables in correct order to handle foreign key constraints
         jdbcTemplate.execute("DELETE FROM reservation_guests");
         jdbcTemplate.execute("DELETE FROM reservations");
+        jdbcTemplate.execute("DELETE FROM beds");
+        jdbcTemplate.execute("DELETE FROM room_amenities");
         jdbcTemplate.execute("DELETE FROM rooms");
         jdbcTemplate.execute("DELETE FROM room_types");
         jdbcTemplate.execute("DELETE FROM guests");

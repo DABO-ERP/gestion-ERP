@@ -1,9 +1,12 @@
 package com.daboerp.gestion.api.controller;
 
 import com.daboerp.gestion.api.dto.CreateReservationRequest;
+import com.daboerp.gestion.api.dto.PaginatedResponse;
 import com.daboerp.gestion.api.dto.ReservationResponse;
 import com.daboerp.gestion.application.usecase.reservation.*;
 import com.daboerp.gestion.domain.entity.Reservation;
+import com.daboerp.gestion.domain.entity.StatusType;
+import com.daboerp.gestion.domain.valueobject.Source;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,15 +36,18 @@ public class ReservationController {
     private final ListReservationsUseCase listReservationsUseCase;
     private final CheckInReservationUseCase checkInReservationUseCase;
     private final CheckOutReservationUseCase checkOutReservationUseCase;
+    private final FilterReservationsUseCase filterReservationsUseCase;
     
     public ReservationController(CreateReservationUseCase createReservationUseCase,
                                 ListReservationsUseCase listReservationsUseCase,
                                 CheckInReservationUseCase checkInReservationUseCase,
-                                CheckOutReservationUseCase checkOutReservationUseCase) {
+                                CheckOutReservationUseCase checkOutReservationUseCase,
+                                FilterReservationsUseCase filterReservationsUseCase) {
         this.createReservationUseCase = createReservationUseCase;
         this.listReservationsUseCase = listReservationsUseCase;
         this.checkInReservationUseCase = checkInReservationUseCase;
         this.checkOutReservationUseCase = checkOutReservationUseCase;
+        this.filterReservationsUseCase = filterReservationsUseCase;
     }
     
     @PostMapping
@@ -93,6 +99,71 @@ public class ReservationController {
             .collect(Collectors.toList());
         
         return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/filter")
+    @Operation(summary = "Filter reservations", description = "Get reservations filtered by status, source, and stay dates with optional pagination")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Filtered reservations retrieved successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid filter parameters")
+    })
+    public ResponseEntity<?> filterReservations(
+            @Parameter(description = "Filter by reservation status") 
+            @RequestParam(required = false) StatusType status,
+            @Parameter(description = "Filter by booking source") 
+            @RequestParam(required = false) Source source,
+            @Parameter(description = "Check-in start date (YYYY-MM-DD)") 
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkInStart,
+            @Parameter(description = "Check-in end date (YYYY-MM-DD)") 
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkInEnd,
+            @Parameter(description = "Stay start date (YYYY-MM-DD) - filters overlapping reservations") 
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate stayStart,
+            @Parameter(description = "Stay end date (YYYY-MM-DD) - filters overlapping reservations") 
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate stayEnd,
+            @Parameter(description = "Page number (0-based, optional for pagination)") 
+            @RequestParam(required = false) Integer page,
+            @Parameter(description = "Page size (1-100, optional for pagination)") 
+            @RequestParam(required = false) Integer size) {
+        
+        var criteria = FilterReservationsUseCase.FilterCriteria.builder()
+            .status(status)
+            .source(source)
+            .checkInStart(checkInStart)
+            .checkInEnd(checkInEnd)
+            .stayStart(stayStart)
+            .stayEnd(stayEnd)
+            .build();
+        
+        // If pagination parameters are provided, return paginated response
+        if (page != null || size != null) {
+            int pageNumber = page != null ? page : 0;
+            int pageSize = size != null ? size : 10;
+            
+            var result = filterReservationsUseCase.executeWithPagination(criteria, pageNumber, pageSize);
+            
+            List<ReservationResponse> content = result.items().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+            
+            PaginatedResponse<ReservationResponse> response = PaginatedResponse.of(
+                content,
+                result.currentPage(),
+                result.pageSize(),
+                result.totalPages(),
+                result.totalCount()
+            );
+            
+            return ResponseEntity.ok(response);
+        } else {
+            // Return simple list without pagination
+            List<Reservation> reservations = filterReservationsUseCase.execute(criteria);
+            
+            List<ReservationResponse> response = reservations.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(response);
+        }
     }
     
     @PostMapping("/{id}/check-in")

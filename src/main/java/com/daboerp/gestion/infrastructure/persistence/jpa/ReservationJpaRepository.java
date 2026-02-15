@@ -1,7 +1,10 @@
 package com.daboerp.gestion.infrastructure.persistence.jpa;
 
 import com.daboerp.gestion.domain.entity.StatusType;
+import com.daboerp.gestion.domain.valueobject.Source;
 import com.daboerp.gestion.infrastructure.persistence.entity.ReservationJpaEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -47,4 +50,57 @@ public interface ReservationJpaRepository extends JpaRepository<ReservationJpaEn
     List<ReservationJpaEntity> findOverlappingReservations(@Param("roomId") String roomId,
                                                            @Param("checkIn") LocalDate checkIn,
                                                            @Param("checkOut") LocalDate checkOut);
+    
+    /**
+     * Find reservations by multiple optional filters.
+     * Dynamic query based on which parameters are not null.
+     */
+    @Query("SELECT r FROM ReservationJpaEntity r WHERE " +
+           "(:status IS NULL OR r.statusType = :status) AND " +
+           "(:source IS NULL OR r.source = :source) AND " +
+           "(:checkInStart IS NULL OR r.checkIn >= :checkInStart) AND " +
+           "(:checkInEnd IS NULL OR r.checkIn <= :checkInEnd) AND " +
+           "(:stayStart IS NULL OR r.checkOut >= :stayStart) AND " +
+           "(:stayEnd IS NULL OR r.checkIn <= :stayEnd)")
+    List<ReservationJpaEntity> findByFilters(@Param("status") StatusType status,
+                                            @Param("source") Source source,
+                                            @Param("checkInStart") LocalDate checkInStart,
+                                            @Param("checkInEnd") LocalDate checkInEnd,
+                                            @Param("stayStart") LocalDate stayStart,
+                                            @Param("stayEnd") LocalDate stayEnd);
+    
+    /**
+     * Find reservations by multiple optional filters with pagination.
+     */
+    @Query("SELECT r FROM ReservationJpaEntity r WHERE " +
+           "(:status IS NULL OR r.statusType = :status) AND " +
+           "(:source IS NULL OR r.source = :source) AND " +
+           "(:checkInStart IS NULL OR r.checkIn >= :checkInStart) AND " +
+           "(:checkInEnd IS NULL OR r.checkIn <= :checkInEnd) AND " +
+           "(:stayStart IS NULL OR r.checkOut >= :stayStart) AND " +
+           "(:stayEnd IS NULL OR r.checkIn <= :stayEnd)")
+    Page<ReservationJpaEntity> findByFiltersWithPagination(@Param("status") StatusType status,
+                                                          @Param("source") Source source,
+                                                          @Param("checkInStart") LocalDate checkInStart,
+                                                          @Param("checkInEnd") LocalDate checkInEnd,
+                                                          @Param("stayStart") LocalDate stayStart,
+                                                          @Param("stayEnd") LocalDate stayEnd,
+                                                          Pageable pageable);
+    
+    /**
+     * Count reservations by multiple optional filters.
+     */
+    @Query("SELECT COUNT(r) FROM ReservationJpaEntity r WHERE " +
+           "(:status IS NULL OR r.statusType = :status) AND " +
+           "(:source IS NULL OR r.source = :source) AND " +
+           "(:checkInStart IS NULL OR r.checkIn >= :checkInStart) AND " +
+           "(:checkInEnd IS NULL OR r.checkIn <= :checkInEnd) AND " +
+           "(:stayStart IS NULL OR r.checkOut >= :stayStart) AND " +
+           "(:stayEnd IS NULL OR r.checkIn <= :stayEnd)")
+    long countByFilters(@Param("status") StatusType status,
+                       @Param("source") Source source,
+                       @Param("checkInStart") LocalDate checkInStart,
+                       @Param("checkInEnd") LocalDate checkInEnd,
+                       @Param("stayStart") LocalDate stayStart,
+                       @Param("stayEnd") LocalDate stayEnd);
 }

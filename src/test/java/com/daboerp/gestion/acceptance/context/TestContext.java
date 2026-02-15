@@ -56,6 +56,10 @@ public class TestContext {
 
     // Generic storage for test data
     private Map<String, Object> testData = new HashMap<>();
+    
+    // Entity lookup maps for relating external identifiers to internal IDs
+    private Map<String, String> guestEmailToIdMap = new HashMap<>();
+    private Map<Integer, String> roomNumberToIdMap = new HashMap<>();
 
     // HTTP Response methods
     public void setLastResponse(ResponseEntity<?> response) {
@@ -299,5 +303,24 @@ public class TestContext {
         this.roomTypeList = null;
         
         this.testData.clear();
+        this.guestEmailToIdMap.clear();
+        this.roomNumberToIdMap.clear();
+    }
+    
+    // Entity lookup methods
+    public void registerGuestEmailToId(String email, String id) {
+        this.guestEmailToIdMap.put(email, id);
+    }
+    
+    public String getGuestIdByEmail(String email) {
+        return this.guestEmailToIdMap.get(email);
+    }
+    
+    public void registerRoomNumberToId(Integer roomNumber, String id) {
+        this.roomNumberToIdMap.put(roomNumber, id);
+    }
+    
+    public String getRoomIdByNumber(Integer roomNumber) {
+        return this.roomNumberToIdMap.get(roomNumber);
     }
 }

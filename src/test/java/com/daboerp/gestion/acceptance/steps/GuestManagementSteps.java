@@ -130,6 +130,11 @@ public class GuestManagementSteps {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         testContext.setExistingGuest(response.getBody());
+        
+        // Register the guest email to ID mapping for use in reservations
+        if (response.getBody() != null) {
+            testContext.registerGuestEmailToId(email, response.getBody().id());
+        }
     }
 
     @Given("a guest exists with the following details:")
@@ -180,6 +185,11 @@ public class GuestManagementSteps {
             );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+            
+            // Store the guest email to ID mapping for use in reservations
+            if (response.getBody() != null) {
+                testContext.registerGuestEmailToId(guestData.get("email"), response.getBody().id());
+            }
         }
     }
 

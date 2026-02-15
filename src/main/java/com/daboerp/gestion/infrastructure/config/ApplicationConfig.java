@@ -131,6 +131,11 @@ public class ApplicationConfig {
         return new CheckOutReservationUseCase(reservationRepository);
     }
     
+    @Bean
+    public FilterReservationsUseCase filterReservationsUseCase(ReservationRepository reservationRepository) {
+        return new FilterReservationsUseCase(reservationRepository);
+    }
+    
     // Document Type use cases
     
     @Bean

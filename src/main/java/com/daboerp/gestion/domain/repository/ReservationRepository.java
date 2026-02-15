@@ -5,6 +5,7 @@ import com.daboerp.gestion.domain.entity.StatusType;
 import com.daboerp.gestion.domain.valueobject.GuestId;
 import com.daboerp.gestion.domain.valueobject.ReservationId;
 import com.daboerp.gestion.domain.valueobject.RoomId;
+import com.daboerp.gestion.domain.valueobject.Source;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -74,6 +75,31 @@ public interface ReservationRepository {
      * Find overlapping reservations for a room and date range.
      */
     List<Reservation> findOverlappingReservations(RoomId roomId, LocalDate checkIn, LocalDate checkOut);
+    
+    /**
+     * Find reservations by multiple filters.
+     * All parameters are optional (can be null).
+     */
+    List<Reservation> findByFilters(StatusType status, Source source, 
+                                    LocalDate checkInStart, LocalDate checkInEnd,
+                                    LocalDate stayStart, LocalDate stayEnd);
+    
+    /**
+     * Find reservations by multiple filters with pagination.
+     * All filter parameters are optional (can be null).
+     */
+    List<Reservation> findByFiltersWithPagination(StatusType status, Source source,
+                                                  LocalDate checkInStart, LocalDate checkInEnd,
+                                                  LocalDate stayStart, LocalDate stayEnd,
+                                                  int page, int size);
+    
+    /**
+     * Count reservations matching the given filters.
+     * All parameters are optional (can be null).
+     */
+    long countByFilters(StatusType status, Source source,
+                       LocalDate checkInStart, LocalDate checkInEnd,
+                       LocalDate stayStart, LocalDate stayEnd);
     
     /**
      * Delete a reservation.

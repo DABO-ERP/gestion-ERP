@@ -109,6 +109,11 @@ public class CreateReservationUseCase {
             Objects.requireNonNull(source, "Source cannot be null");
             Objects.requireNonNull(guestPrincipalId, "Guest principal ID cannot be null");
             Objects.requireNonNull(roomId, "Room ID cannot be null");
+            
+            // Validate date order - this should happen before any other validations
+            if (checkIn.isAfter(checkOut) || checkIn.isEqual(checkOut)) {
+                throw new IllegalArgumentException("Check-in date must be before check-out date");
+            }
         }
     }
 }

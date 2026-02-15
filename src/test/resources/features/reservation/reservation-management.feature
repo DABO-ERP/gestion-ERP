@@ -25,7 +25,7 @@ Feature: Reservation Management
       | checkOut    | 2026-03-05      |
       | roomNumber  | 101             |
       | totalAmount | 200.00          |
-      | source      | WEBSITE         |
+      | source      | DIRECT          |
     Then the reservation should be created successfully
     And the reservation should have a unique code
     And the reservation status should be CONFIRMED

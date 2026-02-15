@@ -6,8 +6,10 @@ import com.daboerp.gestion.domain.repository.ReservationRepository;
 import com.daboerp.gestion.domain.valueobject.GuestId;
 import com.daboerp.gestion.domain.valueobject.ReservationId;
 import com.daboerp.gestion.domain.valueobject.RoomId;
+import com.daboerp.gestion.domain.valueobject.Source;
 import com.daboerp.gestion.infrastructure.persistence.jpa.ReservationJpaRepository;
 import com.daboerp.gestion.infrastructure.persistence.mapper.ReservationMapper;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -110,6 +112,35 @@ public class ReservationRepositoryImpl implements ReservationRepository {
         return jpaRepository.findOverlappingReservations(roomId.getValue(), checkIn, checkOut).stream()
             .map(mapper::toDomainEntity)
             .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<Reservation> findByFilters(StatusType status, Source source,
+                                          LocalDate checkInStart, LocalDate checkInEnd,
+                                          LocalDate stayStart, LocalDate stayEnd) {
+        return jpaRepository.findByFilters(status, source, checkInStart, checkInEnd, stayStart, stayEnd).stream()
+            .map(mapper::toDomainEntity)
+            .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<Reservation> findByFiltersWithPagination(StatusType status, Source source,
+                                                        LocalDate checkInStart, LocalDate checkInEnd,
+                                                        LocalDate stayStart, LocalDate stayEnd,
+                                                        int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        return jpaRepository.findByFiltersWithPagination(
+            status, source, checkInStart, checkInEnd, stayStart, stayEnd, pageable
+        ).stream()
+            .map(mapper::toDomainEntity)
+            .collect(Collectors.toList());
+    }
+    
+    @Override
+    public long countByFilters(StatusType status, Source source,
+                              LocalDate checkInStart, LocalDate checkInEnd,
+                              LocalDate stayStart, LocalDate stayEnd) {
+        return jpaRepository.countByFilters(status, source, checkInStart, checkInEnd, stayStart, stayEnd);
     }
     
     @Override
