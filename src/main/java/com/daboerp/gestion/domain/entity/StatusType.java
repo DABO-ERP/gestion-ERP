@@ -1,8 +1,13 @@
 package com.daboerp.gestion.domain.entity;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * StatusType enumeration - defines available reservation status types.
  */
+@Getter
+@RequiredArgsConstructor
 public enum StatusType {
     PENDING("Pending"),
     CONFIRMED("Confirmed"),
@@ -12,12 +17,4 @@ public enum StatusType {
     NO_SHOW("No Show");
     
     private final String displayName;
-    
-    StatusType(String displayName) {
-        this.displayName = displayName;
-    }
-    
-    public String getDisplayName() {
-        return displayName;
-    }
 }

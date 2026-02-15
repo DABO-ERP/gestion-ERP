@@ -2,6 +2,7 @@ package com.daboerp.gestion.api.controller;
 
 import com.daboerp.gestion.api.dto.CreateGuestRequest;
 import com.daboerp.gestion.api.dto.GuestResponse;
+import com.daboerp.gestion.application.command.guest.CreateGuestCommand;
 import com.daboerp.gestion.application.usecase.guest.CreateGuestUseCase;
 import com.daboerp.gestion.application.usecase.guest.GetGuestUseCase;
 import com.daboerp.gestion.application.usecase.guest.ListGuestsUseCase;
@@ -50,7 +51,8 @@ public class GuestController {
         @ApiResponse(responseCode = "409", description = "Guest already exists with this email")
     })
     public ResponseEntity<GuestResponse> createGuest(@Valid @RequestBody CreateGuestRequest request) {
-        var command = new CreateGuestUseCase.CreateGuestCommand(
+        // Create command using the new Command Pattern
+        CreateGuestCommand command = CreateGuestCommand.create(
             request.firstName(),
             request.lastName(),
             request.email(),
@@ -61,7 +63,8 @@ public class GuestController {
             request.documentType()
         );
         
-        Guest guest = createGuestUseCase.execute(command);
+        // Execute command using Command Handler Pattern
+        Guest guest = createGuestUseCase.handle(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(guest));
     }
     

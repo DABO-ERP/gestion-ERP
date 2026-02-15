@@ -1,14 +1,25 @@
 package com.daboerp.gestion.infrastructure.config;
 
+import com.daboerp.gestion.application.command.CommandHandler;
+import com.daboerp.gestion.application.command.guest.CreateGuestCommand;
+import com.daboerp.gestion.application.decorator.LoggingCommandHandlerDecorator;
+import com.daboerp.gestion.application.decorator.ValidationCommandHandlerDecorator;
 import com.daboerp.gestion.application.usecase.guest.*;
 import com.daboerp.gestion.application.usecase.reservation.*;
 import com.daboerp.gestion.application.usecase.room.*;
+import com.daboerp.gestion.domain.entity.Guest;
+import com.daboerp.gestion.domain.event.DomainEventPublisher;
+import com.daboerp.gestion.domain.factory.guest.GuestFactory;
 import com.daboerp.gestion.domain.repository.GuestRepository;
 import com.daboerp.gestion.domain.repository.ReservationRepository;
 import com.daboerp.gestion.domain.repository.RoomRepository;
 import com.daboerp.gestion.domain.repository.RoomTypeRepository;
+import com.daboerp.gestion.domain.strategy.pricing.*;
+import jakarta.validation.Validator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 /**
  * Application configuration - wires use cases with dependencies.
@@ -20,8 +31,33 @@ public class ApplicationConfig {
     // Guest use cases
     
     @Bean
-    public CreateGuestUseCase createGuestUseCase(GuestRepository guestRepository) {
-        return new CreateGuestUseCase(guestRepository);
+    public CommandHandler<CreateGuestCommand, Guest> createGuestUseCase(GuestRepository guestRepository, 
+                                               DomainEventPublisher eventPublisher,
+                                               Validator validator) {
+        CreateGuestUseCase baseUseCase = new CreateGuestUseCase(guestRepository, eventPublisher);
+        
+        // Apply decorators using Decorator Pattern
+        var validationDecorator = new ValidationCommandHandlerDecorator<>(baseUseCase, validator);
+        return new LoggingCommandHandlerDecorator<CreateGuestCommand, Guest>(validationDecorator);
+    }
+    
+    // Domain Factories
+    
+    @Bean
+    public GuestFactory guestFactory() {
+        return new GuestFactory();
+    }
+    
+    // Strategy Pattern Configuration for Pricing
+    
+    @Bean
+    public PricingContext pricingContext() {
+        List<PricingStrategy> strategies = List.of(
+            new PeakSeasonPricingStrategy(),    // Highest priority (10)
+            new LongStayPricingStrategy(),      // Medium priority (5)
+            new StandardPricingStrategy()       // Lowest priority (1) - fallback
+        );
+        return new PricingContext(strategies);
     }
     
     @Bean

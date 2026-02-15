@@ -1,7 +1,13 @@
 package com.daboerp.gestion.domain.entity;
 
+import com.daboerp.gestion.domain.event.DomainEvent;
+import com.daboerp.gestion.domain.event.reservation.ReservationCreatedEvent;
 import com.daboerp.gestion.domain.valueobject.ReservationId;
 import com.daboerp.gestion.domain.valueobject.Source;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -16,20 +22,34 @@ import java.util.UUID;
  * Represents a booking made by a guest.
  * No framework dependencies - pure domain model.
  */
+@Getter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Reservation {
     
+    @EqualsAndHashCode.Include
     private final ReservationId id;
     private final String reservationCode;
+    @Setter
     private LocalDate checkIn;
+    @Setter
     private LocalDate checkOut;
+    @Setter
     private ReservationStatus status;
+    @Setter
     private BigDecimal quotedAmount;
+    @Setter
     private Source source;
     private final LocalDate createdAt;
+    @Setter
     private Guest guestPrincipal;
     private final List<Guest> guests;
+    @Setter
     private Room room;
+    @Setter
     private Stay stay;
+    
+    // Domain events
+    private final List<DomainEvent> domainEvents = new ArrayList<>();
     
     private Reservation(ReservationId id, String reservationCode, LocalDate checkIn, 
                        LocalDate checkOut, BigDecimal quotedAmount, Source source,
@@ -56,8 +76,23 @@ public class Reservation {
                                     Source source, Guest guestPrincipal, Room room) {
         ReservationId id = ReservationId.generate();
         String reservationCode = generateReservationCode();
-        return new Reservation(id, reservationCode, checkIn, checkOut, quotedAmount,
+        Reservation reservation = new Reservation(id, reservationCode, checkIn, checkOut, quotedAmount,
                              source, guestPrincipal, room, LocalDate.now());
+        
+        // Raise domain event
+        reservation.addDomainEvent(new ReservationCreatedEvent(
+            id, reservationCode, guestPrincipal.getId(), room.getId(), 
+            checkIn, checkOut, quotedAmount
+        ));
+        
+        return reservation;
+    }
+    
+    /**
+     * Builder pattern for complex reservation construction
+     */
+    public static ReservationBuilder builder() {
+        return new ReservationBuilder();
     }
     
     public static Reservation reconstitute(ReservationId id, String reservationCode, 
@@ -181,65 +216,100 @@ public class Reservation {
         }
     }
     
-    // Getters
-    public ReservationId getId() {
-        return id;
-    }
-    
-    public String getReservationCode() {
-        return reservationCode;
-    }
-    
-    public LocalDate getCheckIn() {
-        return checkIn;
-    }
-    
-    public LocalDate getCheckOut() {
-        return checkOut;
-    }
-    
-    public ReservationStatus getStatus() {
-        return status;
-    }
-    
-    public BigDecimal getQuotedAmount() {
-        return quotedAmount;
-    }
-    
-    public Source getSource() {
-        return source;
-    }
-    
-    public LocalDate getCreatedAt() {
-        return createdAt;
-    }
-    
-    public Guest getGuestPrincipal() {
-        return guestPrincipal;
-    }
-    
+    // Custom getter for guests collection to return unmodifiable view
     public List<Guest> getGuests() {
         return Collections.unmodifiableList(guests);
     }
     
-    public Room getRoom() {
-        return room;
+    /**
+     * Builder Class - Builder Pattern Implementation
+     */
+    public static class ReservationBuilder {
+        private LocalDate checkIn;
+        private LocalDate checkOut;
+        private BigDecimal quotedAmount;
+        private Source source;
+        private Guest guestPrincipal;
+        private Room room;
+        private final List<Guest> additionalGuests = new ArrayList<>();
+        
+        private ReservationBuilder() {}
+        
+        public ReservationBuilder checkIn(LocalDate checkIn) {
+            this.checkIn = checkIn;
+            return this;
+        }
+        
+        public ReservationBuilder checkOut(LocalDate checkOut) {
+            this.checkOut = checkOut;
+            return this;
+        }
+        
+        public ReservationBuilder quotedAmount(BigDecimal quotedAmount) {
+            this.quotedAmount = quotedAmount;
+            return this;
+        }
+        
+        public ReservationBuilder source(Source source) {
+            this.source = source;
+            return this;
+        }
+        
+        public ReservationBuilder guestPrincipal(Guest guestPrincipal) {
+            this.guestPrincipal = guestPrincipal;
+            return this;
+        }
+        
+        public ReservationBuilder room(Room room) {
+            this.room = room;
+            return this;
+        }
+        
+        public ReservationBuilder addGuest(Guest guest) {
+            if (guest != null && !additionalGuests.contains(guest)) {
+                this.additionalGuests.add(guest);
+            }
+            return this;
+        }
+        
+        public ReservationBuilder addGuests(List<Guest> guests) {
+            if (guests != null) {              guests.forEach(this::addGuest);
+            }
+            return this;
+        }
+        
+        public Reservation build() {
+            Objects.requireNonNull(checkIn, "Check-in date cannot be null");
+            Objects.requireNonNull(checkOut, "Check-out date cannot be null");
+            Objects.requireNonNull(quotedAmount, "Quoted amount cannot be null");
+            Objects.requireNonNull(source, "Source cannot be null");
+            Objects.requireNonNull(guestPrincipal, "Principal guest cannot be null");
+            Objects.requireNonNull(room, "Room cannot be null");
+            
+            ReservationId id = ReservationId.generate();
+            String reservationCode = generateReservationCode();
+            Reservation reservation = new Reservation(id, reservationCode, checkIn, checkOut, 
+                                                    quotedAmount, source, guestPrincipal, room, LocalDate.now());
+            
+            // Add additional guests
+            additionalGuests.forEach(reservation::addGuest);
+            
+            return reservation;
+        }
     }
     
-    public Stay getStay() {
-        return stay;
+    // Domain Events Management
+    public void addDomainEvent(DomainEvent event) {
+        this.domainEvents.add(event);
     }
     
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Reservation that = (Reservation) o;
-        return Objects.equals(id, that.id);
+    public List<DomainEvent> getDomainEvents() {
+        return Collections.unmodifiableList(domainEvents);
     }
     
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
+    public void clearDomainEvents() {
+        this.domainEvents.clear();
     }
+    
+    // Other getters, equals, and hashCode are generated by Lombok
 }

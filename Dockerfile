@@ -6,7 +6,7 @@ FROM gradle:8.6-jdk17 AS builder
 WORKDIR /app
 
 # Copy Gradle files
-COPY build.gradle settings.gradle gradle.properties ./
+COPY build.gradle settings.gradle ./
 COPY gradlew ./
 COPY gradle ./gradle
 
@@ -17,12 +17,12 @@ COPY src ./src
 RUN gradle clean bootJar --no-daemon
 
 # Stage 2: Runtime
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
 # Create non-root user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN groupadd appgroup && useradd -g appgroup -m appuser
 
 # Copy JAR from builder
 COPY --from=builder /app/build/libs/*.jar app.jar
