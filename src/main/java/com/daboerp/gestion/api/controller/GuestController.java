@@ -2,10 +2,12 @@ package com.daboerp.gestion.api.controller;
 
 import com.daboerp.gestion.api.dto.CreateGuestRequest;
 import com.daboerp.gestion.api.dto.GuestResponse;
+import com.daboerp.gestion.api.dto.UpdateGuestRequest;
 import com.daboerp.gestion.application.command.guest.CreateGuestCommand;
 import com.daboerp.gestion.application.usecase.guest.CreateGuestUseCase;
 import com.daboerp.gestion.application.usecase.guest.GetGuestUseCase;
 import com.daboerp.gestion.application.usecase.guest.ListGuestsUseCase;
+import com.daboerp.gestion.application.usecase.guest.UpdateGuestUseCase;
 import com.daboerp.gestion.domain.entity.Guest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -33,13 +35,16 @@ public class GuestController {
     private final CreateGuestUseCase createGuestUseCase;
     private final GetGuestUseCase getGuestUseCase;
     private final ListGuestsUseCase listGuestsUseCase;
+    private final UpdateGuestUseCase updateGuestUseCase;
     
     public GuestController(CreateGuestUseCase createGuestUseCase,
                           GetGuestUseCase getGuestUseCase,
-                          ListGuestsUseCase listGuestsUseCase) {
+                          ListGuestsUseCase listGuestsUseCase,
+                          UpdateGuestUseCase updateGuestUseCase) {
         this.createGuestUseCase = createGuestUseCase;
         this.getGuestUseCase = getGuestUseCase;
         this.listGuestsUseCase = listGuestsUseCase;
+        this.updateGuestUseCase = updateGuestUseCase;
     }
     
     @PostMapping
@@ -78,6 +83,31 @@ public class GuestController {
     public ResponseEntity<GuestResponse> getGuest(
             @Parameter(description = "Guest ID") @PathVariable String id) {
         Guest guest = getGuestUseCase.execute(id);
+        return ResponseEntity.ok(toResponse(guest));
+    }
+    
+    @PutMapping("/{id}")
+    @Operation(summary = "Update guest information", description = "Update guest contact and personal information")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Guest updated successfully",
+            content = @Content(schema = @Schema(implementation = GuestResponse.class))),
+        @ApiResponse(responseCode = "404", description = "Guest not found"),
+        @ApiResponse(responseCode = "400", description = "Invalid input")
+    })
+    public ResponseEntity<GuestResponse> updateGuest(
+            @Parameter(description = "Guest ID") @PathVariable String id,
+            @Valid @RequestBody UpdateGuestRequest request) {
+        
+        UpdateGuestUseCase.UpdateGuestCommand command = new UpdateGuestUseCase.UpdateGuestCommand(
+            id,
+            request.firstName(),
+            request.lastName(),
+            request.email(),
+            request.phone(),
+            request.dateOfBirth()
+        );
+        
+        Guest guest = updateGuestUseCase.execute(command);
         return ResponseEntity.ok(toResponse(guest));
     }
     

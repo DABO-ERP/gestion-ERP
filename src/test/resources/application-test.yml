@@ -1,0 +1,45 @@
+# Test configuration for Cucumber acceptance tests
+spring:
+  # Database configuration for testing
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  # H2 Console for debugging (disabled in tests)
+  h2:
+    console:
+      enabled: false
+  
+  # JPA/Hibernate configuration for testing
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.H2Dialect
+  
+  # Disable banner for cleaner test output
+  main:
+    banner-mode: off
+
+# Logging configuration for tests
+logging:
+  level:
+    root: WARN
+    com.daboerp: INFO
+    org.springframework: WARN
+
+# Disable actuator endpoints for tests
+management:
+  endpoints:
+    enabled-by-default: false
+
+# Test server configuration
+server:
+  error:
+    include-message: always
+    include-binding-errors: always

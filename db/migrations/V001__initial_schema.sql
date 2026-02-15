@@ -1,6 +1,24 @@
 -- V001: Initial Schema Creation
 -- Gestion ERP - Hostel Management System
 
+-- Create document_types table
+CREATE TABLE IF NOT EXISTS document_types (
+    id VARCHAR(36) PRIMARY KEY,
+    code VARCHAR(20) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    validation_regex VARCHAR(255),
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_code_not_empty CHECK (LENGTH(TRIM(code)) > 0),
+    CONSTRAINT chk_name_not_empty CHECK (LENGTH(TRIM(name)) > 0)
+);
+
+CREATE INDEX idx_document_types_code ON document_types(code);
+CREATE INDEX idx_document_types_active ON document_types(active);
+CREATE INDEX idx_document_types_name ON document_types(name);
+
 -- Create guests table
 CREATE TABLE IF NOT EXISTS guests (
     id VARCHAR(36) PRIMARY KEY,

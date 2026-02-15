@@ -1,6 +1,15 @@
 -- V002: Seed Data for Development
 -- Sample data for testing and development
 
+-- Insert sample document types
+INSERT INTO document_types (id, code, name, description, validation_regex, active, created_at, updated_at)
+VALUES 
+    ('doc-type-001', 'PASSPORT', 'Passport', 'International travel document', '^[A-Z]{1,3}[0-9]{6,9}$', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('doc-type-002', 'DNI', 'National ID', 'National identification card', '^[0-9]{7,10}$', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('doc-type-003', 'LICENSE', 'Driver License', 'Driving license document', '^[A-Z0-9]{8,12}$', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('doc-type-004', 'CEDULA', 'Cédula', 'Latin American ID card', '^[0-9]{8,11}$', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('doc-type-005', 'VISA', 'Visa Document', 'Temporary stay visa', '^V[0-9]{6,8}$', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
 -- Insert sample room types (embedded in rooms for this simplified version)
 -- Insert sample rooms
 INSERT INTO rooms (id, room_number, room_type_id, room_type_name, room_type_description, 

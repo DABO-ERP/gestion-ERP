@@ -3,6 +3,8 @@ spring:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/gestion_erp}
   jpa:
     show-sql: true
+    hibernate:
+      ddl-auto: update  # Para dev, permite crear/actualizar tablas automáticamente
     properties:
       hibernate:
         '[format_sql]': true

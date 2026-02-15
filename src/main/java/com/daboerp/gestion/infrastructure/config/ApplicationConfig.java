@@ -4,12 +4,14 @@ import com.daboerp.gestion.application.command.CommandHandler;
 import com.daboerp.gestion.application.command.guest.CreateGuestCommand;
 import com.daboerp.gestion.application.decorator.LoggingCommandHandlerDecorator;
 import com.daboerp.gestion.application.decorator.ValidationCommandHandlerDecorator;
+import com.daboerp.gestion.application.usecase.documenttype.*;
 import com.daboerp.gestion.application.usecase.guest.*;
 import com.daboerp.gestion.application.usecase.reservation.*;
 import com.daboerp.gestion.application.usecase.room.*;
 import com.daboerp.gestion.domain.entity.Guest;
 import com.daboerp.gestion.domain.event.DomainEventPublisher;
 import com.daboerp.gestion.domain.factory.guest.GuestFactory;
+import com.daboerp.gestion.domain.repository.DocumentTypeRepository;
 import com.daboerp.gestion.domain.repository.GuestRepository;
 import com.daboerp.gestion.domain.repository.ReservationRepository;
 import com.daboerp.gestion.domain.repository.RoomRepository;
@@ -31,7 +33,13 @@ public class ApplicationConfig {
     // Guest use cases
     
     @Bean
-    public CommandHandler<CreateGuestCommand, Guest> createGuestUseCase(GuestRepository guestRepository, 
+    public CreateGuestUseCase createGuestUseCase(GuestRepository guestRepository, 
+                                               DomainEventPublisher eventPublisher) {
+        return new CreateGuestUseCase(guestRepository, eventPublisher);
+    }
+    
+    @Bean
+    public CommandHandler<CreateGuestCommand, Guest> createGuestCommandHandler(GuestRepository guestRepository, 
                                                DomainEventPublisher eventPublisher,
                                                Validator validator) {
         CreateGuestUseCase baseUseCase = new CreateGuestUseCase(guestRepository, eventPublisher);
@@ -121,5 +129,32 @@ public class ApplicationConfig {
     @Bean
     public CheckOutReservationUseCase checkOutReservationUseCase(ReservationRepository reservationRepository) {
         return new CheckOutReservationUseCase(reservationRepository);
+    }
+    
+    // Document Type use cases
+    
+    @Bean
+    public ListDocumentTypesUseCase listDocumentTypesUseCase(DocumentTypeRepository documentTypeRepository) {
+        return new ListDocumentTypesUseCase(documentTypeRepository);
+    }
+    
+    @Bean
+    public GetDocumentTypeUseCase getDocumentTypeUseCase(DocumentTypeRepository documentTypeRepository) {
+        return new GetDocumentTypeUseCase(documentTypeRepository);
+    }
+    
+    @Bean
+    public CreateDocumentTypeUseCase createDocumentTypeUseCase(DocumentTypeRepository documentTypeRepository) {
+        return new CreateDocumentTypeUseCase(documentTypeRepository);
+    }
+    
+    @Bean
+    public SearchDocumentTypesUseCase searchDocumentTypesUseCase(DocumentTypeRepository documentTypeRepository) {
+        return new SearchDocumentTypesUseCase(documentTypeRepository);
+    }
+    
+    @Bean
+    public ListDocumentTypesWithPaginationUseCase listDocumentTypesWithPaginationUseCase(DocumentTypeRepository documentTypeRepository) {
+        return new ListDocumentTypesWithPaginationUseCase(documentTypeRepository);
     }
 }
