@@ -17,9 +17,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -94,12 +96,22 @@ public class RoomController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "List retrieved successfully")
     })
-    public ResponseEntity<List<RoomResponse>> listRooms() {
-        List<Room> rooms = listRoomsUseCase.execute();
-        List<RoomResponse> response = rooms.stream()
+    public ResponseEntity<List<RoomResponse>> listRooms(@RequestParam(value = "status", required = false) String status) {
+        List<RoomResponse> response = (Objects.isNull(status) || status.isBlank()
+                ? listRoomsUseCase.execute()
+                : listRoomsUseCase.execute(parseRoomStatus(status)))
+                .stream()
             .map(this::toRoomResponse)
             .collect(Collectors.toList());
         return ResponseEntity.ok(response);
+    }
+
+    private RoomStatus parseRoomStatus(String status) {
+        try {
+            return RoomStatus.valueOf(status.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid room status: " + status);
+        }
     }
 
     @PutMapping("/rooms/{id}")

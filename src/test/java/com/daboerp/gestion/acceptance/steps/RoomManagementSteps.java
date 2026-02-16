@@ -471,6 +471,27 @@ public class RoomManagementSteps {
         }
     }
 
+    @When("I filter rooms by status {string}")
+    public void iFilterRoomsByStatus(String status) {
+        String url = ROOMS_API_URL + "?status=" + status;
+
+        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+        testContext.setLastResponse(response);
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            try {
+                List<RoomResponse> rooms = objectMapper.readValue(
+                    response.getBody(),
+                    new TypeReference<List<RoomResponse>>() {}
+                );
+                // Reuse the existing storage used by other room list assertions
+                testContext.setAvailableRooms(rooms);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to parse room list response", e);
+            }
+        }
+    }
+
     @When("I search for available rooms with capacity for {int} guests")
     public void iSearchForAvailableRoomsWithCapacityForGuests(int guestCount) {
         String url = ROOMS_API_URL + "/available?minCapacity=" + guestCount;
@@ -671,6 +692,16 @@ public class RoomManagementSteps {
         
         for (RoomResponse room : rooms) {
             assertThat(room.roomStatus()).isEqualTo(RoomStatus.AVAILABLE);
+        }
+    }
+
+    @Then("all returned rooms should have status {string}")
+    public void allReturnedRoomsShouldHaveStatus(String expectedStatus) {
+        List<RoomResponse> rooms = testContext.getAvailableRooms();
+        RoomStatus expected = parseRoomStatus(expectedStatus);
+
+        for (RoomResponse room : rooms) {
+            assertThat(room.roomStatus()).isEqualTo(expected);
         }
     }
 
