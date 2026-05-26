@@ -12,45 +12,48 @@ import com.daboerp.gestion.domain.valueobject.RoomTypeId;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Use case for creating a new room.
- */
 public class CreateRoomUseCase {
-    
+
     private final RoomRepository roomRepository;
     private final RoomTypeRepository roomTypeRepository;
-    
+
     public CreateRoomUseCase(RoomRepository roomRepository, RoomTypeRepository roomTypeRepository) {
         this.roomRepository = Objects.requireNonNull(roomRepository, "Room repository cannot be null");
         this.roomTypeRepository = Objects.requireNonNull(roomTypeRepository, "Room type repository cannot be null");
     }
-    
+
     public Room execute(CreateRoomCommand command) {
         Objects.requireNonNull(command, "Command cannot be null");
-        
-        // Validate room doesn't already exist
+
+        // Check if an active room exists with this number
         if (roomRepository.existsByRoomNumber(command.roomNumber())) {
             throw new ResourceAlreadyExistsException("Room", command.roomNumber().toString());
         }
-        
+
+        // Check if a deleted room exists with this number
+        if (roomRepository.existsDeletedByRoomNumber(command.roomNumber())) {
+            Room deletedRoom = roomRepository.findDeletedByRoomNumber(command.roomNumber()).orElseThrow();
+            throw new DeletedRoomConflictException(command.roomNumber(), deletedRoom.getId().getValue());
+        }
+
         // Get room type
         RoomTypeId roomTypeId = RoomTypeId.of(command.roomTypeId());
         RoomType roomType = roomTypeRepository.findById(roomTypeId)
             .orElseThrow(() -> new ResourceNotFoundException("RoomType", command.roomTypeId()));
-        
+
         // Create room
         Room room = Room.create(command.roomNumber(), roomType, command.amenities());
-        
+
         // Add beds if specified
         if (command.numberOfBeds() != null && command.numberOfBeds() > 0) {
             for (int i = 1; i <= command.numberOfBeds(); i++) {
                 room.addBed(i);
             }
         }
-        
+
         return roomRepository.save(room);
     }
-    
+
     public record CreateRoomCommand(
         Integer roomNumber,
         String roomTypeId,

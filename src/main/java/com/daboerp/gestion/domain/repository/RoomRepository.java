@@ -49,6 +49,16 @@ public interface RoomRepository {
     List<Room> findAvailableByCapacity(int minCapacity, LocalDate checkIn, LocalDate checkOut);
     
     /**
+     * Find all non-deleted rooms.
+     */
+    List<Room> findAllActive();
+
+    /**
+     * Find all non-deleted rooms by status.
+     */
+    List<Room> findActiveByStatus(RoomStatus status);
+
+    /**
      * Delete a room.
      */
     void delete(RoomId id);
@@ -57,4 +67,14 @@ public interface RoomRepository {
      * Check if a room exists by room number.
      */
     boolean existsByRoomNumber(Integer roomNumber);
+
+    /**
+     * Check if a deleted room exists by room number.
+     */
+    boolean existsDeletedByRoomNumber(Integer roomNumber);
+
+    /**
+     * Find a deleted room by room number.
+     */
+    Optional<Room> findDeletedByRoomNumber(Integer roomNumber);
 }

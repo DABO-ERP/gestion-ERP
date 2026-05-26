@@ -44,6 +44,8 @@ public class RoomMapper {
             })
             .collect(Collectors.toList());
         entity.setBeds(bedEntities);
+
+        entity.setDeleted(room.isDeleted());
         
         return entity;
     }
@@ -81,7 +83,8 @@ public class RoomMapper {
             entity.getRoomStatus(),
             entity.getAmenities() != null ? entity.getAmenities() : List.of(),
             beds,
-            entity.getCreatedAt()
+            entity.getCreatedAt(),
+            entity.isDeleted()
         );
     }
 }

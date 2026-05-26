@@ -33,6 +33,8 @@ public class Room {
     private final List<Amenity> amenities;
     private final List<Bed> beds;
     private final java.time.LocalDate createdAt;
+    @Setter
+    private boolean deleted;
     
     private Room(RoomId id, Integer roomNumber, RoomType roomType, 
                  RoomStatus roomStatus, List<Amenity> amenities, java.time.LocalDate createdAt) {
@@ -43,6 +45,7 @@ public class Room {
         this.amenities = new ArrayList<>(amenities != null ? amenities : Collections.emptyList());
         this.beds = new ArrayList<>();
         this.createdAt = Objects.requireNonNull(createdAt, "Created at cannot be null");
+        this.deleted = false;
         
         validateRoomNumber(roomNumber);
     }
@@ -62,6 +65,14 @@ public class Room {
             }
             room.beds.addAll(beds);
         }
+        return room;
+    }
+
+    public static Room reconstitute(RoomId id, Integer roomNumber, RoomType roomType,
+                                   RoomStatus roomStatus, List<Amenity> amenities,
+                                   List<Bed> beds, java.time.LocalDate createdAt, boolean deleted) {
+        Room room = reconstitute(id, roomNumber, roomType, roomStatus, amenities, beds, createdAt);
+        room.deleted = deleted;
         return room;
     }
     
@@ -95,6 +106,10 @@ public class Room {
     
     public void updateRoomType(RoomType roomType) {
         this.roomType = Objects.requireNonNull(roomType, "Room type cannot be null");
+    }
+    
+    public void markAsDeleted() {
+        this.deleted = true;
     }
     
     public void addAmenity(Amenity amenity) {

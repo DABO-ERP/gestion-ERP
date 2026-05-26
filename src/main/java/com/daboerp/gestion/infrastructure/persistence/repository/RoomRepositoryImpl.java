@@ -55,8 +55,22 @@ public class RoomRepositoryImpl implements RoomRepository {
     }
     
     @Override
+    public List<Room> findAllActive() {
+        return jpaRepository.findByDeletedFalse().stream()
+            .map(mapper::toDomainEntity)
+            .collect(Collectors.toList());
+    }
+    
+    @Override
     public List<Room> findByStatus(RoomStatus status) {
         return jpaRepository.findByRoomStatus(status).stream()
+            .map(mapper::toDomainEntity)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Room> findActiveByStatus(RoomStatus status) {
+        return jpaRepository.findByDeletedFalseAndRoomStatus(status).stream()
             .map(mapper::toDomainEntity)
             .collect(Collectors.toList());
     }
@@ -82,6 +96,17 @@ public class RoomRepositoryImpl implements RoomRepository {
     
     @Override
     public boolean existsByRoomNumber(Integer roomNumber) {
-        return jpaRepository.existsByRoomNumber(roomNumber);
+        return jpaRepository.existsByRoomNumberAndDeletedFalse(roomNumber);
+    }
+
+    @Override
+    public boolean existsDeletedByRoomNumber(Integer roomNumber) {
+        return jpaRepository.existsByRoomNumberAndDeletedTrue(roomNumber);
+    }
+
+    @Override
+    public Optional<Room> findDeletedByRoomNumber(Integer roomNumber) {
+        return jpaRepository.findByRoomNumberAndDeletedTrue(roomNumber)
+            .map(mapper::toDomainEntity);
     }
 }
