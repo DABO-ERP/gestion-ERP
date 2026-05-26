@@ -110,6 +110,11 @@ public class ApplicationConfig {
     public CreateRoomTypeUseCase createRoomTypeUseCase(RoomTypeRepository roomTypeRepository) {
         return new CreateRoomTypeUseCase(roomTypeRepository);
     }
+
+    @Bean
+    public ListRoomTypesUseCase listRoomTypesUseCase(RoomTypeRepository roomTypeRepository) {
+        return new ListRoomTypesUseCase(roomTypeRepository);
+    }
     
     // Reservation use cases
     

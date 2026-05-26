@@ -35,17 +35,20 @@ public class RoomController {
     private final CreateRoomTypeUseCase createRoomTypeUseCase;
     private final CreateRoomUseCase createRoomUseCase;
     private final ListRoomsUseCase listRoomsUseCase;
+    private final ListRoomTypesUseCase listRoomTypesUseCase;
     private final FindAvailableRoomsUseCase findAvailableRoomsUseCase;
     private final UpdateRoomStatusUseCase updateRoomStatusUseCase;
     
     public RoomController(CreateRoomTypeUseCase createRoomTypeUseCase,
                          CreateRoomUseCase createRoomUseCase,
                          ListRoomsUseCase listRoomsUseCase,
+                         ListRoomTypesUseCase listRoomTypesUseCase,
                          FindAvailableRoomsUseCase findAvailableRoomsUseCase,
                          UpdateRoomStatusUseCase updateRoomStatusUseCase) {
         this.createRoomTypeUseCase = createRoomTypeUseCase;
         this.createRoomUseCase = createRoomUseCase;
         this.listRoomsUseCase = listRoomsUseCase;
+        this.listRoomTypesUseCase = listRoomTypesUseCase;
         this.findAvailableRoomsUseCase = findAvailableRoomsUseCase;
         this.updateRoomStatusUseCase = updateRoomStatusUseCase;
     }
@@ -68,6 +71,18 @@ public class RoomController {
         
         RoomType roomType = createRoomTypeUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(toRoomTypeResponse(roomType));
+    }
+
+    @GetMapping("/room-types")
+    @Operation(summary = "List all room types", description = "Get all available room types")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "List retrieved successfully")
+    })
+    public ResponseEntity<List<RoomTypeResponse>> listRoomTypes() {
+        List<RoomTypeResponse> response = listRoomTypesUseCase.execute().stream()
+            .map(this::toRoomTypeResponse)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
     }
     
     @PostMapping("/rooms")
