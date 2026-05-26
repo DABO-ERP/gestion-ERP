@@ -1,9 +1,11 @@
 package com.daboerp.gestion.api.exception;
 
 import com.daboerp.gestion.api.dto.ErrorResponse;
+import com.daboerp.gestion.api.dto.RoomConflictResponse;
 import com.daboerp.gestion.application.exception.BusinessRuleViolationException;
 import com.daboerp.gestion.application.exception.ResourceAlreadyExistsException;
 import com.daboerp.gestion.application.exception.ResourceNotFoundException;
+import com.daboerp.gestion.application.usecase.room.DeletedRoomConflictException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +43,22 @@ public class GlobalExceptionHandler {
             "Resource Already Exists",
             ex.getMessage(),
             request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(DeletedRoomConflictException.class)
+    public ResponseEntity<RoomConflictResponse> handleDeletedRoomConflict(
+            DeletedRoomConflictException ex, HttpServletRequest request) {
+        RoomConflictResponse error = new RoomConflictResponse(
+            HttpStatus.CONFLICT.value(),
+            "Deleted Room Conflict",
+            ex.getMessage(),
+            request.getRequestURI(),
+            System.currentTimeMillis(),
+            ex.getRoomId(),
+            ex.getRoomNumber(),
+            "DELETED_ROOM_EXISTS"
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }

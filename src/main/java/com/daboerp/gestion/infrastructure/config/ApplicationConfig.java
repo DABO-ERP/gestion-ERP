@@ -115,6 +115,33 @@ public class ApplicationConfig {
     public ListRoomTypesUseCase listRoomTypesUseCase(RoomTypeRepository roomTypeRepository) {
         return new ListRoomTypesUseCase(roomTypeRepository);
     }
+
+    @Bean
+    public UpdateRoomTypeUseCase updateRoomTypeUseCase(RoomTypeRepository roomTypeRepository) {
+        return new UpdateRoomTypeUseCase(roomTypeRepository);
+    }
+
+    @Bean
+    public UpdateRoomUseCase updateRoomUseCase(RoomRepository roomRepository,
+                                              RoomTypeRepository roomTypeRepository) {
+        return new UpdateRoomUseCase(roomRepository, roomTypeRepository);
+    }
+
+    @Bean
+    public DeleteRoomUseCase deleteRoomUseCase(RoomRepository roomRepository) {
+        return new DeleteRoomUseCase(roomRepository);
+    }
+
+    @Bean
+    public ReactivateRoomUseCase reactivateRoomUseCase(RoomRepository roomRepository,
+                                                      RoomTypeRepository roomTypeRepository) {
+        return new ReactivateRoomUseCase(roomRepository, roomTypeRepository);
+    }
+
+    @Bean
+    public RestoreRoomUseCase restoreRoomUseCase(RoomRepository roomRepository) {
+        return new RestoreRoomUseCase(roomRepository);
+    }
     
     // Reservation use cases
     

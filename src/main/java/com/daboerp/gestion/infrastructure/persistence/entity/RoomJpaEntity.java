@@ -61,4 +61,7 @@ public class RoomJpaEntity {
     
     @Column(name = "created_at", nullable = false)
     private LocalDate createdAt;
+
+    @Column(name = "deleted", nullable = false)
+    private boolean deleted = false;
 }

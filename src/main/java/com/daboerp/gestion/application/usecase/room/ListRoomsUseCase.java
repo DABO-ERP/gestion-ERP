@@ -19,11 +19,18 @@ public class ListRoomsUseCase {
     }
     
     public List<Room> execute() {
-        return roomRepository.findAll();
+        return roomRepository.findAllActive();
     }
 
     public List<Room> execute(RoomStatus status) {
         Objects.requireNonNull(status, "Status cannot be null");
-        return roomRepository.findByStatus(status);
+        return roomRepository.findActiveByStatus(status);
+    }
+    
+    public List<Room> execute(boolean includeDeleted) {
+        if (includeDeleted) {
+            return roomRepository.findAll();
+        }
+        return roomRepository.findAllActive();
     }
 }

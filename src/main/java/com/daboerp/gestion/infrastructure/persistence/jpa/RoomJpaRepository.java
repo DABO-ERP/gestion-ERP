@@ -18,12 +18,22 @@ import java.util.Optional;
 public interface RoomJpaRepository extends JpaRepository<RoomJpaEntity, String> {
     
     Optional<RoomJpaEntity> findByRoomNumber(Integer roomNumber);
-    
+
+    Optional<RoomJpaEntity> findByRoomNumberAndDeletedTrue(Integer roomNumber);
+
+    boolean existsByRoomNumberAndDeletedFalse(Integer roomNumber);
+
+    boolean existsByRoomNumberAndDeletedTrue(Integer roomNumber);
+
     List<RoomJpaEntity> findByRoomStatus(RoomStatus status);
     
     boolean existsByRoomNumber(Integer roomNumber);
     
-    @Query("SELECT r FROM RoomJpaEntity r WHERE r.roomStatus = 'AVAILABLE' AND " +
+    List<RoomJpaEntity> findByDeletedFalse();
+
+    List<RoomJpaEntity> findByDeletedFalseAndRoomStatus(RoomStatus status);
+
+    @Query("SELECT r FROM RoomJpaEntity r WHERE r.deleted = false AND r.roomStatus = 'AVAILABLE' AND " +
            "r.id NOT IN (" +
            "  SELECT res.roomId FROM ReservationJpaEntity res WHERE " +
            "  res.statusType IN ('CONFIRMED', 'CHECKED_IN') AND " +
@@ -32,7 +42,7 @@ public interface RoomJpaRepository extends JpaRepository<RoomJpaEntity, String> 
     List<RoomJpaEntity> findAvailableRooms(@Param("checkIn") LocalDate checkIn, 
                                            @Param("checkOut") LocalDate checkOut);
     
-    @Query("SELECT r FROM RoomJpaEntity r WHERE r.roomStatus = 'AVAILABLE' AND " +
+    @Query("SELECT r FROM RoomJpaEntity r WHERE r.deleted = false AND r.roomStatus = 'AVAILABLE' AND " +
            "r.roomTypeMaxOccupancy >= :minCapacity AND " +
            "r.id NOT IN (" +
            "  SELECT res.roomId FROM ReservationJpaEntity res WHERE " +
