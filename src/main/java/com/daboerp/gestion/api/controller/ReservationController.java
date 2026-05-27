@@ -3,6 +3,7 @@ package com.daboerp.gestion.api.controller;
 import com.daboerp.gestion.api.dto.CreateReservationRequest;
 import com.daboerp.gestion.api.dto.PaginatedResponse;
 import com.daboerp.gestion.api.dto.ReservationResponse;
+import com.daboerp.gestion.api.dto.UpdateReservationRequest;
 import com.daboerp.gestion.application.usecase.reservation.*;
 import com.daboerp.gestion.domain.entity.Reservation;
 import com.daboerp.gestion.domain.entity.StatusType;
@@ -24,32 +25,38 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * REST controller for reservation management.
- */
 @RestController
 @RequestMapping("/api/v1/reservations")
 @Tag(name = "Reservation Management", description = "APIs for managing reservations, check-ins, and check-outs")
 public class ReservationController {
-    
+
     private final CreateReservationUseCase createReservationUseCase;
     private final ListReservationsUseCase listReservationsUseCase;
     private final CheckInReservationUseCase checkInReservationUseCase;
     private final CheckOutReservationUseCase checkOutReservationUseCase;
     private final FilterReservationsUseCase filterReservationsUseCase;
-    
+    private final GetReservationUseCase getReservationUseCase;
+    private final UpdateReservationUseCase updateReservationUseCase;
+    private final CancelReservationUseCase cancelReservationUseCase;
+
     public ReservationController(CreateReservationUseCase createReservationUseCase,
                                 ListReservationsUseCase listReservationsUseCase,
                                 CheckInReservationUseCase checkInReservationUseCase,
                                 CheckOutReservationUseCase checkOutReservationUseCase,
-                                FilterReservationsUseCase filterReservationsUseCase) {
+                                FilterReservationsUseCase filterReservationsUseCase,
+                                GetReservationUseCase getReservationUseCase,
+                                UpdateReservationUseCase updateReservationUseCase,
+                                CancelReservationUseCase cancelReservationUseCase) {
         this.createReservationUseCase = createReservationUseCase;
         this.listReservationsUseCase = listReservationsUseCase;
         this.checkInReservationUseCase = checkInReservationUseCase;
         this.checkOutReservationUseCase = checkOutReservationUseCase;
         this.filterReservationsUseCase = filterReservationsUseCase;
+        this.getReservationUseCase = getReservationUseCase;
+        this.updateReservationUseCase = updateReservationUseCase;
+        this.cancelReservationUseCase = cancelReservationUseCase;
     }
-    
+
     @PostMapping
     @Operation(summary = "Create a new reservation", description = "Book a room for a guest")
     @ApiResponses(value = {
@@ -70,11 +77,11 @@ public class ReservationController {
             request.roomId(),
             request.additionalGuestIds()
         );
-        
+
         Reservation reservation = createReservationUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(reservation));
     }
-    
+
     @GetMapping
     @Operation(summary = "List reservations", description = "Get all reservations with optional filters")
     @ApiResponses(value = {
@@ -85,7 +92,7 @@ public class ReservationController {
             @Parameter(description = "End date for filtering (YYYY-MM-DD)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @Parameter(description = "Filter: 'active' for active reservations only") @RequestParam(required = false) String filter) {
         List<Reservation> reservations;
-        
+
         if ("active".equalsIgnoreCase(filter)) {
             reservations = listReservationsUseCase.executeActive();
         } else if (startDate != null && endDate != null) {
@@ -93,14 +100,66 @@ public class ReservationController {
         } else {
             reservations = listReservationsUseCase.execute();
         }
-        
+
         List<ReservationResponse> response = reservations.stream()
             .map(this::toResponse)
             .collect(Collectors.toList());
-        
+
         return ResponseEntity.ok(response);
     }
-    
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Get a reservation by ID", description = "Retrieve a single reservation by its unique identifier")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Reservation found",
+            content = @Content(schema = @Schema(implementation = ReservationResponse.class))),
+        @ApiResponse(responseCode = "404", description = "Reservation not found")
+    })
+    public ResponseEntity<ReservationResponse> getReservation(
+            @Parameter(description = "Reservation ID") @PathVariable String id) {
+        Reservation reservation = getReservationUseCase.execute(id);
+        return ResponseEntity.ok(toResponse(reservation));
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Update a reservation", description = "Update an existing reservation's details")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Reservation updated successfully",
+            content = @Content(schema = @Schema(implementation = ReservationResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input"),
+        @ApiResponse(responseCode = "404", description = "Reservation not found"),
+        @ApiResponse(responseCode = "422", description = "Business rule violation")
+    })
+    public ResponseEntity<ReservationResponse> updateReservation(
+            @Parameter(description = "Reservation ID") @PathVariable String id,
+            @Valid @RequestBody UpdateReservationRequest request) {
+        var command = new UpdateReservationUseCase.UpdateReservationCommand(
+            id,
+            request.checkIn(),
+            request.checkOut(),
+            request.quotedAmount(),
+            request.source(),
+            request.guestPrincipalId(),
+            request.roomId()
+        );
+
+        Reservation reservation = updateReservationUseCase.execute(command);
+        return ResponseEntity.ok(toResponse(reservation));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Cancel a reservation", description = "Cancel and delete a reservation")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Reservation cancelled successfully"),
+        @ApiResponse(responseCode = "404", description = "Reservation not found"),
+        @ApiResponse(responseCode = "422", description = "Cannot cancel a checked-out reservation")
+    })
+    public ResponseEntity<Void> deleteReservation(
+            @Parameter(description = "Reservation ID") @PathVariable String id) {
+        cancelReservationUseCase.execute(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/filter")
     @Operation(summary = "Filter reservations", description = "Get reservations filtered by status, source, and stay dates with optional pagination")
     @ApiResponses(value = {
@@ -108,23 +167,23 @@ public class ReservationController {
         @ApiResponse(responseCode = "400", description = "Invalid filter parameters")
     })
     public ResponseEntity<?> filterReservations(
-            @Parameter(description = "Filter by reservation status") 
+            @Parameter(description = "Filter by reservation status")
             @RequestParam(required = false) StatusType status,
-            @Parameter(description = "Filter by booking source") 
+            @Parameter(description = "Filter by booking source")
             @RequestParam(required = false) Source source,
-            @Parameter(description = "Check-in start date (YYYY-MM-DD)") 
+            @Parameter(description = "Check-in start date (YYYY-MM-DD)")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkInStart,
-            @Parameter(description = "Check-in end date (YYYY-MM-DD)") 
+            @Parameter(description = "Check-in end date (YYYY-MM-DD)")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkInEnd,
-            @Parameter(description = "Stay start date (YYYY-MM-DD) - filters overlapping reservations") 
+            @Parameter(description = "Stay start date (YYYY-MM-DD) - filters overlapping reservations")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate stayStart,
-            @Parameter(description = "Stay end date (YYYY-MM-DD) - filters overlapping reservations") 
+            @Parameter(description = "Stay end date (YYYY-MM-DD) - filters overlapping reservations")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate stayEnd,
-            @Parameter(description = "Page number (0-based, optional for pagination)") 
+            @Parameter(description = "Page number (0-based, optional for pagination)")
             @RequestParam(required = false) Integer page,
-            @Parameter(description = "Page size (1-100, optional for pagination)") 
+            @Parameter(description = "Page size (1-100, optional for pagination)")
             @RequestParam(required = false) Integer size) {
-        
+
         var criteria = FilterReservationsUseCase.FilterCriteria.builder()
             .status(status)
             .source(source)
@@ -133,18 +192,17 @@ public class ReservationController {
             .stayStart(stayStart)
             .stayEnd(stayEnd)
             .build();
-        
-        // If pagination parameters are provided, return paginated response
+
         if (page != null || size != null) {
             int pageNumber = page != null ? page : 0;
             int pageSize = size != null ? size : 10;
-            
+
             var result = filterReservationsUseCase.executeWithPagination(criteria, pageNumber, pageSize);
-            
+
             List<ReservationResponse> content = result.items().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
-            
+
             PaginatedResponse<ReservationResponse> response = PaginatedResponse.of(
                 content,
                 result.currentPage(),
@@ -152,20 +210,19 @@ public class ReservationController {
                 result.totalPages(),
                 result.totalCount()
             );
-            
+
             return ResponseEntity.ok(response);
         } else {
-            // Return simple list without pagination
             List<Reservation> reservations = filterReservationsUseCase.execute(criteria);
-            
+
             List<ReservationResponse> response = reservations.stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
-            
+
             return ResponseEntity.ok(response);
         }
     }
-    
+
     @PostMapping("/{id}/check-in")
     @Operation(summary = "Check-in a reservation", description = "Mark a reservation as checked in")
     @ApiResponses(value = {
@@ -180,7 +237,7 @@ public class ReservationController {
         Reservation reservation = checkInReservationUseCase.execute(command);
         return ResponseEntity.ok(toResponse(reservation));
     }
-    
+
     @PostMapping("/{id}/check-out")
     @Operation(summary = "Check-out a reservation", description = "Mark a reservation as checked out")
     @ApiResponses(value = {
@@ -195,7 +252,7 @@ public class ReservationController {
         Reservation reservation = checkOutReservationUseCase.execute(command);
         return ResponseEntity.ok(toResponse(reservation));
     }
-    
+
     private ReservationResponse toResponse(Reservation reservation) {
         return new ReservationResponse(
             reservation.getId().getValue(),

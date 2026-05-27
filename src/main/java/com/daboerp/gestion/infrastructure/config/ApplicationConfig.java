@@ -180,6 +180,24 @@ public class ApplicationConfig {
     public FilterReservationsUseCase filterReservationsUseCase(ReservationRepository reservationRepository) {
         return new FilterReservationsUseCase(reservationRepository);
     }
+
+    @Bean
+    public GetReservationUseCase getReservationUseCase(ReservationRepository reservationRepository) {
+        return new GetReservationUseCase(reservationRepository);
+    }
+
+    @Bean
+    public UpdateReservationUseCase updateReservationUseCase(ReservationRepository reservationRepository,
+                                                             GuestRepository guestRepository,
+                                                             RoomRepository roomRepository) {
+        return new UpdateReservationUseCase(reservationRepository, guestRepository, roomRepository);
+    }
+
+    @Bean
+    public CancelReservationUseCase cancelReservationUseCase(ReservationRepository reservationRepository,
+                                                             RoomRepository roomRepository) {
+        return new CancelReservationUseCase(reservationRepository, roomRepository);
+    }
     
     // Document Type use cases
     
