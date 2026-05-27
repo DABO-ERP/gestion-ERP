@@ -8,5 +8,6 @@ public record UpdateRoomRequest(
     Integer roomNumber,
     String roomTypeId,
     List<Amenity> amenities,
-    Integer numberOfBeds
+    Integer numberOfBeds,
+    List<String> imageUrls
 ) {}

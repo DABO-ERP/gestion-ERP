@@ -151,7 +151,8 @@ public class RoomController {
             request.roomNumber(),
             request.roomTypeId(),
             request.amenities(),
-            request.numberOfBeds()
+            request.numberOfBeds(),
+            request.imageUrls()
         );
         Room room = createRoomUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(toRoomResponse(room));
@@ -205,7 +206,8 @@ public class RoomController {
             request.roomNumber(),
             request.roomTypeId(),
             request.amenities(),
-            request.numberOfBeds()
+            request.numberOfBeds(),
+            request.imageUrls()
         );
         Room updated = updateRoomUseCase.execute(command);
         return ResponseEntity.ok(toRoomResponse(updated));
@@ -239,7 +241,8 @@ public class RoomController {
             request.roomNumber(),
             request.roomTypeId(),
             request.amenities(),
-            request.numberOfBeds()
+            request.numberOfBeds(),
+            request.imageUrls()
         );
         Room updated = reactivateRoomUseCase.execute(command);
         return ResponseEntity.ok(toRoomResponse(updated));
@@ -293,6 +296,7 @@ public class RoomController {
             room.getRoomStatus(),
             room.getAmenities(),
             room.getBeds().size(),
+            room.getImageUrls(),
             room.getCreatedAt()
         );
     }

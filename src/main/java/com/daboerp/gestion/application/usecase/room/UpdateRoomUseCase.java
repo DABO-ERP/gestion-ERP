@@ -59,6 +59,11 @@ public class UpdateRoomUseCase {
             }
         }
 
+        if (command.imageUrls() != null) {
+            new ArrayList<>(room.getImageUrls()).forEach(room::removeImageUrl);
+            command.imageUrls().forEach(room::addImageUrl);
+        }
+
         return roomRepository.save(room);
     }
 
@@ -67,7 +72,8 @@ public class UpdateRoomUseCase {
         Integer roomNumber,
         String roomTypeId,
         List<Amenity> amenities,
-        Integer numberOfBeds
+        Integer numberOfBeds,
+        List<String> imageUrls
     ) {
         public UpdateRoomCommand {
             Objects.requireNonNull(roomId, "Room ID cannot be null");
