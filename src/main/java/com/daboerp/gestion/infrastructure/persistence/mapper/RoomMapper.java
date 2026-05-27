@@ -29,6 +29,7 @@ public class RoomMapper {
         entity.setRoomTypeDescription(roomType.getDescription());
         entity.setRoomTypeMaxOccupancy(roomType.getMaxOccupancy());
         entity.setRoomTypeBasePrice(roomType.getBasePrice());
+        entity.setRoomTypeImageUrl(roomType.getImageUrl());
         
         // Map amenities
         entity.setAmenities(room.getAmenities());
@@ -61,7 +62,8 @@ public class RoomMapper {
             entity.getRoomTypeName(),
             entity.getRoomTypeDescription(),
             entity.getRoomTypeMaxOccupancy(),
-            entity.getRoomTypeBasePrice()
+            entity.getRoomTypeBasePrice(),
+            entity.getRoomTypeImageUrl()
         );
         
         // Reconstitute beds (will be added to room after creation)

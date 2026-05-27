@@ -31,8 +31,8 @@ class PricingStrategyTest {
                                "PASSPORT123", DocumentType.PASSPORT);
         
         // Create test room with $100 base price
-        RoomType roomType = RoomType.create("Standard", "Standard Room", 
-                                          2, new BigDecimal("100.00"));
+        RoomType roomType = RoomType.create("Standard", "Standard Room",
+                                          2, new BigDecimal("100.00"), null);
         testRoom = Room.create(101, roomType, 
                               List.of(Amenity.WIFI, Amenity.AIR_CONDITIONING));
         

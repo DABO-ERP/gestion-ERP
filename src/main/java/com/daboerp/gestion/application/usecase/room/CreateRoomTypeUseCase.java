@@ -30,7 +30,8 @@ public class CreateRoomTypeUseCase {
             command.name(),
             command.description(),
             command.maxOccupancy(),
-            command.basePrice()
+            command.basePrice(),
+            command.imageUrl()
         );
         
         return roomTypeRepository.save(roomType);
@@ -40,7 +41,8 @@ public class CreateRoomTypeUseCase {
         String name,
         String description,
         int maxOccupancy,
-        BigDecimal basePrice
+        BigDecimal basePrice,
+        String imageUrl
     ) {
         public CreateRoomTypeCommand {
             Objects.requireNonNull(name, "Name cannot be null");

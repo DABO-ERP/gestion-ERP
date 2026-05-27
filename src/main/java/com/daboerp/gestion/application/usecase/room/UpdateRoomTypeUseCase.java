@@ -35,6 +35,10 @@ public class UpdateRoomTypeUseCase {
             roomType.updatePricing(command.basePrice());
         }
 
+        if (command.imageUrl() != null) {
+            roomType.setImageUrl(command.imageUrl());
+        }
+
         return roomTypeRepository.save(roomType);
     }
 
@@ -43,7 +47,8 @@ public class UpdateRoomTypeUseCase {
         String name,
         String description,
         Integer maxOccupancy,
-        BigDecimal basePrice
+        BigDecimal basePrice,
+        String imageUrl
     ) {
         public UpdateRoomTypeCommand {
             Objects.requireNonNull(roomTypeId, "Room type ID cannot be null");

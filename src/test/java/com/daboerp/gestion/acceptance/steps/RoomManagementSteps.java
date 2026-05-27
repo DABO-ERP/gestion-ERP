@@ -63,7 +63,8 @@ public class RoomManagementSteps {
             roomTypeData.get("name"),
             roomTypeData.get("description"),
             Integer.parseInt(roomTypeData.get("maxOccupancy")),
-            new BigDecimal(roomTypeData.get("basePrice"))
+            new BigDecimal(roomTypeData.get("basePrice")),
+            null
         );
 
         ResponseEntity<RoomTypeResponse> response = restTemplate.postForEntity(
@@ -93,61 +94,22 @@ public class RoomManagementSteps {
             roomTypeName,
             roomTypeName + " room type",
             2,
-            BigDecimal.valueOf(basePrice)
+            BigDecimal.valueOf(basePrice),
+            null
         ));
     }
 
     @Given("the following room types exist:")
     public void theFollowingRoomTypesExist(DataTable dataTable) {
         List<Map<String, String>> roomTypes = dataTable.asMaps();
-        
+
         for (Map<String, String> roomTypeData : roomTypes) {
             String roomTypeName = roomTypeData.get("name");
             String description = roomTypeData.get("description");
             int maxOccupancy = Integer.parseInt(roomTypeData.get("maxOccupancy"));
             double basePrice = Double.parseDouble(roomTypeData.get("basePrice"));
-            
-            // Use the ensure method which handles duplicates gracefully
+
             ensureRoomTypeExistsWithDetails(roomTypeName, description, maxOccupancy, basePrice);
-        }
-    }
-
-    /**
-     * Helper method to ensure a room type exists without failing if it already exists
-     */
-    private void ensureRoomTypeExistsWithDetails(String roomTypeName, String description, int maxOccupancy, double basePrice) {
-        // First check if we already have the ID in our map
-        if (roomTypeNameToIdMap.containsKey(roomTypeName)) {
-            return;
-        }
-        
-        // Generate a unique name to avoid conflicts across tests
-        String uniqueRoomTypeName = roomTypeName + "-" + System.currentTimeMillis();
-        
-        CreateRoomTypeRequest request = new CreateRoomTypeRequest(
-            uniqueRoomTypeName,
-            description,
-            maxOccupancy,
-            BigDecimal.valueOf(basePrice)
-        );
-
-        try {
-            ResponseEntity<RoomTypeResponse> response = restTemplate.postForEntity(
-                ROOM_TYPES_API_URL, 
-                request, 
-                RoomTypeResponse.class
-            );
-            // Store the mapping if creation was successful
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                RoomTypeResponse body = Objects.requireNonNull(response.getBody());
-                // Map both the original name and unique name to the same ID
-                roomTypeNameToIdMap.put(roomTypeName, body.id());
-                roomTypeNameToIdMap.put(uniqueRoomTypeName, body.id());
-            } else {
-                throw new RuntimeException("Failed to create room type: " + response.getStatusCode());
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Could not ensure room type exists: " + roomTypeName, e);
         }
     }
 
@@ -288,6 +250,39 @@ public class RoomManagementSteps {
         }
     }
 
+    private void ensureRoomTypeExistsWithDetails(String roomTypeName, String description, int maxOccupancy, double basePrice) {
+        if (roomTypeNameToIdMap.containsKey(roomTypeName)) {
+            return;
+        }
+
+        String uniqueRoomTypeName = roomTypeName + "-" + System.currentTimeMillis();
+
+        CreateRoomTypeRequest request = new CreateRoomTypeRequest(
+            uniqueRoomTypeName,
+            description,
+            maxOccupancy,
+            BigDecimal.valueOf(basePrice),
+            null
+        );
+
+        try {
+            ResponseEntity<RoomTypeResponse> response = restTemplate.postForEntity(
+                ROOM_TYPES_API_URL,
+                request,
+                RoomTypeResponse.class
+            );
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                RoomTypeResponse body = Objects.requireNonNull(response.getBody());
+                roomTypeNameToIdMap.put(roomTypeName, body.id());
+                roomTypeNameToIdMap.put(uniqueRoomTypeName, body.id());
+            } else {
+                throw new RuntimeException("Failed to create room type: " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Could not ensure room type exists: " + roomTypeName, e);
+        }
+    }
+
     /**
      * Helper method to ensure a room type exists without failing if it already exists
      */
@@ -306,8 +301,9 @@ public class RoomManagementSteps {
         CreateRoomTypeRequest request = new CreateRoomTypeRequest(
             uniqueRoomTypeName,
             roomTypeName + " room type",
-            2, // default occupancy
-            BigDecimal.valueOf(basePrice)
+            2,
+            BigDecimal.valueOf(basePrice),
+            null
         );
 
         try {

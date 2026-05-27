@@ -45,6 +45,9 @@ public class RoomJpaEntity {
     
     @Column(name = "room_type_base_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal roomTypeBasePrice;
+
+    @Column(name = "room_type_image_url", length = 500)
+    private String roomTypeImageUrl;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "room_status", nullable = false, length = 50)

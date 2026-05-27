@@ -10,5 +10,6 @@ public record RoomTypeResponse(
     String name,
     String description,
     Integer maxOccupancy,
-    BigDecimal basePrice
+    BigDecimal basePrice,
+    String imageUrl
 ) {}
