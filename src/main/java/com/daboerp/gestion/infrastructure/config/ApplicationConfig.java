@@ -122,6 +122,11 @@ public class ApplicationConfig {
     }
 
     @Bean
+    public DeleteRoomTypeUseCase deleteRoomTypeUseCase(RoomTypeRepository roomTypeRepository) {
+        return new DeleteRoomTypeUseCase(roomTypeRepository);
+    }
+
+    @Bean
     public UpdateRoomUseCase updateRoomUseCase(RoomRepository roomRepository,
                                               RoomTypeRepository roomTypeRepository) {
         return new UpdateRoomUseCase(roomRepository, roomTypeRepository);

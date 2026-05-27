@@ -38,6 +38,7 @@ public class RoomController {
     private final UpdateRoomUseCase updateRoomUseCase;
     private final DeleteRoomUseCase deleteRoomUseCase;
     private final UpdateRoomTypeUseCase updateRoomTypeUseCase;
+    private final DeleteRoomTypeUseCase deleteRoomTypeUseCase;
     private final ReactivateRoomUseCase reactivateRoomUseCase;
     private final RestoreRoomUseCase restoreRoomUseCase;
 
@@ -50,6 +51,7 @@ public class RoomController {
                          UpdateRoomUseCase updateRoomUseCase,
                          DeleteRoomUseCase deleteRoomUseCase,
                          UpdateRoomTypeUseCase updateRoomTypeUseCase,
+                         DeleteRoomTypeUseCase deleteRoomTypeUseCase,
                          ReactivateRoomUseCase reactivateRoomUseCase,
                          RestoreRoomUseCase restoreRoomUseCase) {
         this.createRoomTypeUseCase = createRoomTypeUseCase;
@@ -61,6 +63,7 @@ public class RoomController {
         this.updateRoomUseCase = updateRoomUseCase;
         this.deleteRoomUseCase = deleteRoomUseCase;
         this.updateRoomTypeUseCase = updateRoomTypeUseCase;
+        this.deleteRoomTypeUseCase = deleteRoomTypeUseCase;
         this.reactivateRoomUseCase = reactivateRoomUseCase;
         this.restoreRoomUseCase = restoreRoomUseCase;
     }
@@ -117,6 +120,19 @@ public class RoomController {
         );
         RoomType roomType = updateRoomTypeUseCase.execute(command);
         return ResponseEntity.ok(toRoomTypeResponse(roomType));
+    }
+
+    @DeleteMapping("/room-types/{id}")
+    @Operation(summary = "Delete a room type", description = "Delete a room type by its ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Room type deleted successfully"),
+        @ApiResponse(responseCode = "404", description = "Room type not found")
+    })
+    public ResponseEntity<Void> deleteRoomType(
+            @Parameter(description = "Room Type ID") @PathVariable String id) {
+        var command = new DeleteRoomTypeUseCase.DeleteRoomTypeCommand(id);
+        deleteRoomTypeUseCase.execute(command);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/rooms")
