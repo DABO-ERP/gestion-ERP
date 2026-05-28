@@ -26,27 +26,22 @@ public class DataInitializer {
 
         roomTypeRepository.save(RoomType.create(
             "Standard Single", "Single room with basic amenities", 1,
-            new BigDecimal("50.00"),
-            "https://picsum.photos/seed/standard-single/400/300"));
+            new BigDecimal("50.00")));
 
         roomTypeRepository.save(RoomType.create(
             "Standard Double", "Double room for two guests", 2,
-            new BigDecimal("80.00"),
-            "https://picsum.photos/seed/standard-double/400/300"));
+            new BigDecimal("80.00")));
 
         roomTypeRepository.save(RoomType.create(
             "Deluxe Suite", "Luxury suite with premium amenities", 3,
-            new BigDecimal("150.00"),
-            "https://picsum.photos/seed/deluxe-suite/400/300"));
+            new BigDecimal("150.00")));
 
         roomTypeRepository.save(RoomType.create(
             "Dormitory 4-Bed", "Shared dormitory with 4 beds", 4,
-            new BigDecimal("25.00"),
-            "https://picsum.photos/seed/dormitory/400/300"));
+            new BigDecimal("25.00")));
 
         roomTypeRepository.save(RoomType.create(
             "Family Room", "Spacious room for families", 4,
-            new BigDecimal("120.00"),
-            "https://picsum.photos/seed/family-room/400/300"));
+            new BigDecimal("120.00")));
     }
 }

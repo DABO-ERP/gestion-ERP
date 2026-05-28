@@ -25,7 +25,6 @@ public class RoomMapper {
         entity.setRoomTypeDescription(roomType.getDescription());
         entity.setRoomTypeMaxOccupancy(roomType.getMaxOccupancy());
         entity.setRoomTypeBasePrice(roomType.getBasePrice());
-        entity.setRoomTypeImageUrl(roomType.getImageUrl());
 
         entity.setAmenities(room.getAmenities());
         entity.setImageUrls(room.getImageUrls());
@@ -56,8 +55,7 @@ public class RoomMapper {
             entity.getRoomTypeName(),
             entity.getRoomTypeDescription(),
             entity.getRoomTypeMaxOccupancy(),
-            entity.getRoomTypeBasePrice(),
-            entity.getRoomTypeImageUrl()
+            entity.getRoomTypeBasePrice()
         );
 
         List<Bed> beds = (entity.getBeds() != null) ?

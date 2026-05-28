@@ -81,8 +81,7 @@ public class RoomController {
             request.name(),
             request.description(),
             request.maxOccupancy(),
-            request.basePrice(),
-            request.imageUrl()
+            request.basePrice()
         );
         RoomType roomType = createRoomTypeUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(toRoomTypeResponse(roomType));
@@ -117,8 +116,7 @@ public class RoomController {
             request.name(),
             request.description(),
             request.maxOccupancy(),
-            request.basePrice(),
-            request.imageUrl()
+            request.basePrice()
         );
         RoomType roomType = updateRoomTypeUseCase.execute(command);
         return ResponseEntity.ok(toRoomTypeResponse(roomType));
@@ -307,8 +305,7 @@ public class RoomController {
             roomType.getName(),
             roomType.getDescription(),
             roomType.getMaxOccupancy(),
-            roomType.getBasePrice(),
-            roomType.getImageUrl()
+            roomType.getBasePrice()
         );
     }
 }

@@ -21,7 +21,5 @@ public record CreateRoomTypeRequest(
     
     @NotNull(message = "Base price is required")
     @Positive(message = "Base price must be positive")
-    BigDecimal basePrice,
-
-    String imageUrl
+    BigDecimal basePrice
 ) {}

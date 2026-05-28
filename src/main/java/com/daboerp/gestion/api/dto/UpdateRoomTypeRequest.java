@@ -6,6 +6,5 @@ public record UpdateRoomTypeRequest(
     String name,
     String description,
     Integer maxOccupancy,
-    BigDecimal basePrice,
-    String imageUrl
+    BigDecimal basePrice
 ) {}

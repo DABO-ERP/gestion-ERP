@@ -27,29 +27,26 @@ public class RoomType {
     private int maxOccupancy;
     @Setter
     private BigDecimal basePrice;
-    @Setter
-    private String imageUrl;
     
-    private RoomType(RoomTypeId id, String name, String description, int maxOccupancy, BigDecimal basePrice, String imageUrl) {
+    private RoomType(RoomTypeId id, String name, String description, int maxOccupancy, BigDecimal basePrice) {
         this.id = Objects.requireNonNull(id, "Room type ID cannot be null");
         this.name = Objects.requireNonNull(name, "Name cannot be null");
         this.description = description;
         this.maxOccupancy = maxOccupancy;
         this.basePrice = Objects.requireNonNull(basePrice, "Base price cannot be null");
-        this.imageUrl = imageUrl;
         
         validateMaxOccupancy(maxOccupancy);
         validateBasePrice(basePrice);
     }
     
-    public static RoomType create(String name, String description, int maxOccupancy, BigDecimal basePrice, String imageUrl) {
+    public static RoomType create(String name, String description, int maxOccupancy, BigDecimal basePrice) {
         RoomTypeId id = RoomTypeId.generate();
-        return new RoomType(id, name, description, maxOccupancy, basePrice, imageUrl);
+        return new RoomType(id, name, description, maxOccupancy, basePrice);
     }
     
     public static RoomType reconstitute(RoomTypeId id, String name, String description, 
-                                       int maxOccupancy, BigDecimal basePrice, String imageUrl) {
-        return new RoomType(id, name, description, maxOccupancy, basePrice, imageUrl);
+                                       int maxOccupancy, BigDecimal basePrice) {
+        return new RoomType(id, name, description, maxOccupancy, basePrice);
     }
     
     public void updatePricing(BigDecimal newBasePrice) {
