@@ -3,7 +3,9 @@ package com.daboerp.gestion.api.controller;
 import com.daboerp.gestion.api.dto.*;
 import com.daboerp.gestion.application.usecase.room.*;
 import com.daboerp.gestion.domain.entity.Room;
+import com.daboerp.gestion.domain.entity.RoomBlock;
 import com.daboerp.gestion.domain.entity.RoomType;
+import com.daboerp.gestion.domain.valueobject.Amenity;
 import com.daboerp.gestion.domain.valueobject.RoomStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,6 +43,9 @@ public class RoomController {
     private final DeleteRoomTypeUseCase deleteRoomTypeUseCase;
     private final ReactivateRoomUseCase reactivateRoomUseCase;
     private final RestoreRoomUseCase restoreRoomUseCase;
+    private final BlockRoomUseCase blockRoomUseCase;
+    private final UnblockRoomUseCase unblockRoomUseCase;
+    private final GetRoomBlocksUseCase getRoomBlocksUseCase;
 
     public RoomController(CreateRoomTypeUseCase createRoomTypeUseCase,
                          CreateRoomUseCase createRoomUseCase,
@@ -53,7 +58,10 @@ public class RoomController {
                          UpdateRoomTypeUseCase updateRoomTypeUseCase,
                          DeleteRoomTypeUseCase deleteRoomTypeUseCase,
                          ReactivateRoomUseCase reactivateRoomUseCase,
-                         RestoreRoomUseCase restoreRoomUseCase) {
+                         RestoreRoomUseCase restoreRoomUseCase,
+                         BlockRoomUseCase blockRoomUseCase,
+                         UnblockRoomUseCase unblockRoomUseCase,
+                         GetRoomBlocksUseCase getRoomBlocksUseCase) {
         this.createRoomTypeUseCase = createRoomTypeUseCase;
         this.createRoomUseCase = createRoomUseCase;
         this.listRoomsUseCase = listRoomsUseCase;
@@ -66,6 +74,9 @@ public class RoomController {
         this.deleteRoomTypeUseCase = deleteRoomTypeUseCase;
         this.reactivateRoomUseCase = reactivateRoomUseCase;
         this.restoreRoomUseCase = restoreRoomUseCase;
+        this.blockRoomUseCase = blockRoomUseCase;
+        this.unblockRoomUseCase = unblockRoomUseCase;
+        this.getRoomBlocksUseCase = getRoomBlocksUseCase;
     }
 
     @PostMapping("/room-types")
@@ -148,7 +159,7 @@ public class RoomController {
         var command = new CreateRoomUseCase.CreateRoomCommand(
             request.roomNumber(),
             request.roomTypeId(),
-            request.amenities(),
+            request.amenities() != null ? request.amenities().stream().map(Amenity::of).collect(Collectors.toList()) : null,
             request.numberOfBeds(),
             request.imageUrls()
         );
@@ -203,7 +214,7 @@ public class RoomController {
             id,
             request.roomNumber(),
             request.roomTypeId(),
-            request.amenities(),
+            request.amenities() != null ? request.amenities().stream().map(Amenity::of).collect(Collectors.toList()) : null,
             request.numberOfBeds(),
             request.imageUrls()
         );
@@ -238,7 +249,7 @@ public class RoomController {
             id,
             request.roomNumber(),
             request.roomTypeId(),
-            request.amenities(),
+            request.amenities() != null ? request.amenities().stream().map(Amenity::of).collect(Collectors.toList()) : null,
             request.numberOfBeds(),
             request.imageUrls()
         );
@@ -278,6 +289,55 @@ public class RoomController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/rooms/{id}/blocks")
+    @Operation(summary = "Block a room for a date range", description = "Create an unavailability block for a room")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Room blocked successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid input"),
+        @ApiResponse(responseCode = "404", description = "Room not found")
+    })
+    public ResponseEntity<RoomBlockResponse> blockRoom(
+            @Parameter(description = "Room ID") @PathVariable String id,
+            @Valid @RequestBody BlockRoomRequest request) {
+        var command = new BlockRoomUseCase.BlockRoomCommand(id, request.startDate(), request.endDate(), request.reason());
+        RoomBlock block = blockRoomUseCase.execute(command);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toRoomBlockResponse(block));
+    }
+
+    @GetMapping("/rooms/{id}/blocks")
+    @Operation(summary = "Get room blocks", description = "Get all blocks for a specific room")
+    public ResponseEntity<List<RoomBlockResponse>> getRoomBlocks(
+            @Parameter(description = "Room ID") @PathVariable String id,
+            @RequestParam(defaultValue = "true") boolean activeOnly) {
+        var query = new GetRoomBlocksUseCase.GetRoomBlocksQuery(id, activeOnly);
+        List<RoomBlockResponse> response = getRoomBlocksUseCase.execute(query).stream()
+            .map(this::toRoomBlockResponse)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/rooms/{roomId}/blocks/{blockId}")
+    @Operation(summary = "Unblock a room", description = "Remove or deactivate a room block")
+    public ResponseEntity<Void> unblockRoom(
+            @Parameter(description = "Room ID") @PathVariable String roomId,
+            @Parameter(description = "Block ID") @PathVariable String blockId) {
+        var command = new UnblockRoomUseCase.UnblockRoomCommand(blockId);
+        unblockRoomUseCase.execute(command);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/rooms/{id}/is-available")
+    @Operation(summary = "Check if room is available in a date range")
+    public ResponseEntity<Boolean> checkRoomAvailability(
+            @Parameter(description = "Room ID") @PathVariable String id,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkIn,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOut) {
+        var query = new FindAvailableRoomsUseCase.FindAvailableRoomsQuery(checkIn, checkOut, null);
+        boolean available = findAvailableRoomsUseCase.execute(query).stream()
+            .anyMatch(room -> room.getId().getValue().equals(id));
+        return ResponseEntity.ok(available);
+    }
+
     private RoomStatus parseRoomStatus(String status) {
         try {
             return RoomStatus.valueOf(status.trim().toUpperCase());
@@ -292,7 +352,7 @@ public class RoomController {
             room.getRoomNumber(),
             toRoomTypeResponse(room.getRoomType()),
             room.getRoomStatus(),
-            room.getAmenities(),
+            room.getAmenities().stream().map(Amenity::getValue).collect(Collectors.toList()),
             room.getBeds().size(),
             room.getImageUrls(),
             room.getCreatedAt()
@@ -306,6 +366,19 @@ public class RoomController {
             roomType.getDescription(),
             roomType.getMaxOccupancy(),
             roomType.getBasePrice()
+        );
+    }
+
+    private RoomBlockResponse toRoomBlockResponse(RoomBlock block) {
+        return new RoomBlockResponse(
+            block.getId().getValue(),
+            block.getRoomId().getValue(),
+            null,
+            block.getStartDate(),
+            block.getEndDate(),
+            block.getReason(),
+            block.isActive(),
+            block.getCreatedAt()
         );
     }
 }

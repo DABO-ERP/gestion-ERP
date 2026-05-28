@@ -2,7 +2,6 @@ package com.daboerp.gestion.acceptance.steps;
 
 import com.daboerp.gestion.acceptance.context.TestContext;
 import com.daboerp.gestion.api.dto.*;
-import com.daboerp.gestion.domain.valueobject.Amenity;
 import com.daboerp.gestion.domain.valueobject.DocumentType;
 import com.daboerp.gestion.domain.valueobject.Nationality;
 import com.daboerp.gestion.domain.valueobject.RoomStatus;
@@ -63,8 +62,7 @@ public class RoomManagementSteps {
             roomTypeData.get("name"),
             roomTypeData.get("description"),
             Integer.parseInt(roomTypeData.get("maxOccupancy")),
-            new BigDecimal(roomTypeData.get("basePrice")),
-            null
+            new BigDecimal(roomTypeData.get("basePrice"))
         );
 
         ResponseEntity<RoomTypeResponse> response = restTemplate.postForEntity(
@@ -94,8 +92,7 @@ public class RoomManagementSteps {
             roomTypeName,
             roomTypeName + " room type",
             2,
-            BigDecimal.valueOf(basePrice),
-            null
+            BigDecimal.valueOf(basePrice)
         ));
     }
 
@@ -117,11 +114,10 @@ public class RoomManagementSteps {
     public void iCreateARoomWithTheFollowingDetails(DataTable dataTable) {
         Map<String, String> roomData = dataTable.asMap();
 
-        List<Amenity> amenities = List.of(roomData.get("amenities").split(",")).stream()
+        List<String> amenities = List.of(roomData.get("amenities").split(",")).stream()
             .map(String::strip)
             .filter(s -> !s.isBlank())
             .map(s -> s.replace("TV", "TELEVISION"))
-            .map(Amenity::valueOf)
             .toList();
 
         String roomTypeName = roomData.get("roomType");
@@ -131,7 +127,8 @@ public class RoomManagementSteps {
             Integer.parseInt(roomData.get("number")),
             roomTypeId,
             amenities,
-            2 // numberOfBeds
+            2, // numberOfBeds
+            List.of()
         );
 
         ResponseEntity<RoomResponse> response = restTemplate.postForEntity(
@@ -157,8 +154,9 @@ public class RoomManagementSteps {
         CreateRoomRequest request = new CreateRoomRequest(
             Integer.parseInt(roomNumber),
             roomTypeId,
-            List.of(Amenity.WIFI),
-            1
+            List.of("WIFI"),
+            1,
+            List.of()
         );
 
         ResponseEntity<RoomResponse> response = restTemplate.postForEntity(
@@ -179,13 +177,14 @@ public class RoomManagementSteps {
         CreateRoomRequest request = new CreateRoomRequest(
             Integer.parseInt(roomNumber),
             roomTypeId,
-            List.of(Amenity.WIFI),
-            1 // numberOfBeds
+            List.of("WIFI"),
+            1, // numberOfBeds
+            List.of()
         );
 
         ResponseEntity<String> response = restTemplate.postForEntity(
-            ROOMS_API_URL, 
-            request, 
+            ROOMS_API_URL,
+            request,
             String.class
         );
 
@@ -224,13 +223,14 @@ public class RoomManagementSteps {
             CreateRoomRequest request = new CreateRoomRequest(
                 roomNumber,
                 roomTypeId,
-                List.of(Amenity.WIFI, Amenity.TELEVISION), // amenities
-                1 // numberOfBeds
+                List.of("WIFI", "TELEVISION"), // amenities
+                1, // numberOfBeds
+                List.of()
             );
 
             ResponseEntity<RoomResponse> response = restTemplate.postForEntity(
-                ROOMS_API_URL, 
-                request, 
+                ROOMS_API_URL,
+                request,
                 RoomResponse.class
             );
 
@@ -261,8 +261,7 @@ public class RoomManagementSteps {
             uniqueRoomTypeName,
             description,
             maxOccupancy,
-            BigDecimal.valueOf(basePrice),
-            null
+            BigDecimal.valueOf(basePrice)
         );
 
         try {
@@ -302,8 +301,7 @@ public class RoomManagementSteps {
             uniqueRoomTypeName,
             roomTypeName + " room type",
             2,
-            BigDecimal.valueOf(basePrice),
-            null
+            BigDecimal.valueOf(basePrice)
         );
 
         try {
@@ -348,26 +346,25 @@ public class RoomManagementSteps {
             CreateRoomRequest request = new CreateRoomRequest(
                 Integer.parseInt(roomData.get("number")),
                 roomTypeId,
-                List.of(Amenity.WIFI, Amenity.TELEVISION), // amenities
-                1 // numberOfBeds
+                List.of("WIFI", "TELEVISION"), // amenities
+                1, // numberOfBeds
+                List.of()
             );
 
             ResponseEntity<RoomResponse> response = restTemplate.postForEntity(
-                ROOMS_API_URL, 
-                request, 
+                ROOMS_API_URL,
+                request,
                 RoomResponse.class
             );
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             RoomResponse created = Objects.requireNonNull(response.getBody());
-            
+
             // Update room status if needed
             RoomStatus targetStatus = parseRoomStatus(roomData.get("status"));
             if (targetStatus != RoomStatus.AVAILABLE) {
                 updateRoomStatus(created.id(), targetStatus);
             }
-
-            testContext.registerRoomNumberToId(Integer.parseInt(roomData.get("number")), created.id());
         }
     }
 
@@ -430,13 +427,14 @@ public class RoomManagementSteps {
         CreateRoomRequest request = new CreateRoomRequest(
             Integer.parseInt(roomNumber),
             roomTypeId,
-            List.of(Amenity.WIFI),
-            1 // numberOfBeds
+            List.of("WIFI"),
+            1, // numberOfBeds
+            List.of()
         );
 
         ResponseEntity<RoomResponse> response = restTemplate.postForEntity(
-            ROOMS_API_URL, 
-            request, 
+            ROOMS_API_URL,
+            request,
             RoomResponse.class
         );
 

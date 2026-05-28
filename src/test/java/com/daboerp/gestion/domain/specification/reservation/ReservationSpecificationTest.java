@@ -31,8 +31,8 @@ class ReservationSpecificationTest {
                                  "PASSPORT123", DocumentType.PASSPORT);
         
         RoomType roomType = RoomType.create("Standard", "Standard Room",
-                                          2, new BigDecimal("100.00"), null);
-        Room room = Room.create(101, roomType, List.of(Amenity.WIFI));
+                                           2, new BigDecimal("100.00"));
+        Room room = Room.create(101, roomType, List.of(Amenity.of("WIFI")));
         
         // Active reservation (3 nights)
         activeReservation = Reservation.create(

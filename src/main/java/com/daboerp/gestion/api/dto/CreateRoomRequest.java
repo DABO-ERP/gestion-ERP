@@ -1,8 +1,6 @@
 package com.daboerp.gestion.api.dto;
 
-import com.daboerp.gestion.domain.valueobject.Amenity;
 import jakarta.validation.constraints.NotNull;
-
 import java.util.List;
 
 public record CreateRoomRequest(
@@ -12,7 +10,7 @@ public record CreateRoomRequest(
     @NotNull(message = "Room type ID is required")
     String roomTypeId,
 
-    List<Amenity> amenities,
+    List<String> amenities,
 
     Integer numberOfBeds,
 

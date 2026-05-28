@@ -2,12 +2,13 @@ package com.daboerp.gestion.infrastructure.persistence.mapper;
 
 import com.daboerp.gestion.domain.entity.*;
 import com.daboerp.gestion.domain.valueobject.*;
-import com.daboerp.gestion.infrastructure.persistence.entity.RoomJpaEntity;
 import com.daboerp.gestion.infrastructure.persistence.entity.BedJpaEntity;
+import com.daboerp.gestion.infrastructure.persistence.entity.RoomJpaEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 public class RoomMapper {
@@ -26,7 +27,7 @@ public class RoomMapper {
         entity.setRoomTypeMaxOccupancy(roomType.getMaxOccupancy());
         entity.setRoomTypeBasePrice(roomType.getBasePrice());
 
-        entity.setAmenities(room.getAmenities());
+        entity.setAmenities(room.getAmenities().stream().map(Amenity::getValue).collect(Collectors.toList()));
         entity.setImageUrls(room.getImageUrls());
 
         List<BedJpaEntity> bedEntities = room.getBeds().stream()
@@ -73,7 +74,7 @@ public class RoomMapper {
             entity.getRoomNumber(),
             roomType,
             entity.getRoomStatus(),
-            entity.getAmenities() != null ? entity.getAmenities() : List.of(),
+            entity.getAmenities() != null ? entity.getAmenities().stream().map(Amenity::of).collect(Collectors.toList()) : List.of(),
             beds,
             entity.getCreatedAt(),
             entity.getImageUrls() != null ? entity.getImageUrls() : List.of(),

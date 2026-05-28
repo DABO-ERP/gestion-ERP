@@ -1,6 +1,5 @@
 package com.daboerp.gestion.infrastructure.persistence.entity;
 
-import com.daboerp.gestion.domain.valueobject.Amenity;
 import com.daboerp.gestion.domain.valueobject.RoomStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -52,9 +51,8 @@ public class RoomJpaEntity {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "room_amenities", joinColumns = @JoinColumn(name = "room_id"))
-    @Column(name = "amenity")
-    @Enumerated(EnumType.STRING)
-    private List<Amenity> amenities = new ArrayList<>();
+    @Column(name = "amenity", length = 50)
+    private List<String> amenities = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "room_images", joinColumns = @JoinColumn(name = "room_id"))

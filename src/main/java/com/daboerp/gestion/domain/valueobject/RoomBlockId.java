@@ -1,21 +1,26 @@
 package com.daboerp.gestion.domain.valueobject;
 
 import java.util.Objects;
+import java.util.UUID;
 
-public class Amenity {
+public class RoomBlockId {
 
     private final String value;
 
-    private Amenity(String value) {
-        Objects.requireNonNull(value, "Amenity value cannot be null");
+    private RoomBlockId(String value) {
+        Objects.requireNonNull(value, "RoomBlock ID cannot be null");
         if (value.isBlank()) {
-            throw new IllegalArgumentException("Amenity value cannot be blank");
+            throw new IllegalArgumentException("RoomBlock ID cannot be blank");
         }
         this.value = value;
     }
 
-    public static Amenity of(String value) {
-        return new Amenity(value);
+    public static RoomBlockId of(String value) {
+        return new RoomBlockId(value);
+    }
+
+    public static RoomBlockId generate() {
+        return new RoomBlockId(UUID.randomUUID().toString());
     }
 
     public String getValue() {
@@ -26,8 +31,8 @@ public class Amenity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Amenity amenity = (Amenity) o;
-        return Objects.equals(value, amenity.value);
+        RoomBlockId that = (RoomBlockId) o;
+        return Objects.equals(value, that.value);
     }
 
     @Override
