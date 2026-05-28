@@ -25,26 +25,21 @@ public class CreateRoomUseCase {
     public Room execute(CreateRoomCommand command) {
         Objects.requireNonNull(command, "Command cannot be null");
 
-        // Check if an active room exists with this number
         if (roomRepository.existsByRoomNumber(command.roomNumber())) {
             throw new ResourceAlreadyExistsException("Room", command.roomNumber().toString());
         }
 
-        // Check if a deleted room exists with this number
         if (roomRepository.existsDeletedByRoomNumber(command.roomNumber())) {
             Room deletedRoom = roomRepository.findDeletedByRoomNumber(command.roomNumber()).orElseThrow();
             throw new DeletedRoomConflictException(command.roomNumber(), deletedRoom.getId().getValue());
         }
 
-        // Get room type
         RoomTypeId roomTypeId = RoomTypeId.of(command.roomTypeId());
         RoomType roomType = roomTypeRepository.findById(roomTypeId)
             .orElseThrow(() -> new ResourceNotFoundException("RoomType", command.roomTypeId()));
 
-        // Create room
-        Room room = Room.create(command.roomNumber(), roomType, command.amenities());
+        Room room = Room.create(command.roomNumber(), roomType, command.amenities(), command.imageUrls());
 
-        // Add beds if specified
         if (command.numberOfBeds() != null && command.numberOfBeds() > 0) {
             for (int i = 1; i <= command.numberOfBeds(); i++) {
                 room.addBed(i);
@@ -58,7 +53,8 @@ public class CreateRoomUseCase {
         Integer roomNumber,
         String roomTypeId,
         List<Amenity> amenities,
-        Integer numberOfBeds
+        Integer numberOfBeds,
+        List<String> imageUrls
     ) {
         public CreateRoomCommand {
             Objects.requireNonNull(roomNumber, "Room number cannot be null");

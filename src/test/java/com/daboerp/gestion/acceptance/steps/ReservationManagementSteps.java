@@ -601,8 +601,9 @@ public class ReservationManagementSteps {
                 CreateRoomRequest roomRequest = new CreateRoomRequest(
                     roomNumber,
                     "SINGLE",
-                    List.of(),
-                    2
+                    List.<String>of(),
+                    2,
+                    List.of()
                 );
                 restTemplate.postForEntity(ROOMS_API_URL, roomRequest, RoomResponse.class);
             }

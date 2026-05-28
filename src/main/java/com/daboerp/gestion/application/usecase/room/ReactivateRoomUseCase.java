@@ -70,6 +70,11 @@ public class ReactivateRoomUseCase {
             }
         }
 
+        if (command.imageUrls() != null) {
+            new ArrayList<>(room.getImageUrls()).forEach(room::removeImageUrl);
+            command.imageUrls().forEach(room::addImageUrl);
+        }
+
         return roomRepository.save(room);
     }
 
@@ -78,7 +83,8 @@ public class ReactivateRoomUseCase {
         Integer roomNumber,
         String roomTypeId,
         List<Amenity> amenities,
-        Integer numberOfBeds
+        Integer numberOfBeds,
+        List<String> imageUrls
     ) {
         public ReactivateRoomCommand {
             Objects.requireNonNull(roomId, "Room ID cannot be null");

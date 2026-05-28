@@ -3,15 +3,14 @@ package com.daboerp.gestion.api.dto;
 import com.daboerp.gestion.domain.valueobject.RoomStatus;
 
 import java.time.LocalDate;
-import java.util.List;
 
-public record RoomResponse(
+public record RoomBlockResponse(
     String id,
+    String roomId,
     Integer roomNumber,
-    RoomTypeResponse roomType,
-    RoomStatus roomStatus,
-    List<String> amenities,
-    Integer bedCount,
-    List<String> imageUrls,
+    LocalDate startDate,
+    LocalDate endDate,
+    String reason,
+    boolean active,
     LocalDate createdAt
 ) {}
