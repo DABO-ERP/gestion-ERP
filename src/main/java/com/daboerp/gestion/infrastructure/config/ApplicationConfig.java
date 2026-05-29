@@ -87,9 +87,8 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public FindAvailableRoomsUseCase findAvailableRoomsUseCase(RoomRepository roomRepository,
-                                                               RoomBlockRepository roomBlockRepository) {
-        return new FindAvailableRoomsUseCase(roomRepository, roomBlockRepository);
+    public FindAvailableRoomsUseCase findAvailableRoomsUseCase(RoomRepository roomRepository) {
+        return new FindAvailableRoomsUseCase(roomRepository);
     }
 
     @Bean
@@ -137,24 +136,6 @@ public class ApplicationConfig {
     @Bean
     public RestoreRoomUseCase restoreRoomUseCase(RoomRepository roomRepository) {
         return new RestoreRoomUseCase(roomRepository);
-    }
-
-    // Room Block use cases
-
-    @Bean
-    public BlockRoomUseCase blockRoomUseCase(RoomRepository roomRepository,
-                                            RoomBlockRepository roomBlockRepository) {
-        return new BlockRoomUseCase(roomRepository, roomBlockRepository);
-    }
-
-    @Bean
-    public UnblockRoomUseCase unblockRoomUseCase(RoomBlockRepository roomBlockRepository) {
-        return new UnblockRoomUseCase(roomBlockRepository);
-    }
-
-    @Bean
-    public GetRoomBlocksUseCase getRoomBlocksUseCase(RoomBlockRepository roomBlockRepository) {
-        return new GetRoomBlocksUseCase(roomBlockRepository);
     }
 
     // Reservation use cases
@@ -251,5 +232,28 @@ public class ApplicationConfig {
     public DeleteAmenityDefinitionUseCase deleteAmenityDefinitionUseCase(AmenityDefinitionRepository amenityDefinitionRepository,
                                                                          RoomRepository roomRepository) {
         return new DeleteAmenityDefinitionUseCase(amenityDefinitionRepository, roomRepository);
+    }
+
+    // Room Block use cases
+
+    @Bean
+    public BlockRoomUseCase blockRoomUseCase(RoomBlockRepository roomBlockRepository,
+                                             RoomRepository roomRepository) {
+        return new BlockRoomUseCase(roomBlockRepository, roomRepository);
+    }
+
+    @Bean
+    public UnblockRoomUseCase unblockRoomUseCase(RoomBlockRepository roomBlockRepository) {
+        return new UnblockRoomUseCase(roomBlockRepository);
+    }
+
+    @Bean
+    public GetRoomBlocksUseCase getRoomBlocksUseCase(RoomBlockRepository roomBlockRepository) {
+        return new GetRoomBlocksUseCase(roomBlockRepository);
+    }
+
+    @Bean
+    public GetAllBlocksUseCase getAllBlocksUseCase(RoomBlockRepository roomBlockRepository) {
+        return new GetAllBlocksUseCase(roomBlockRepository);
     }
 }
