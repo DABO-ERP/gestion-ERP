@@ -7,10 +7,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "room_blocks")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class RoomBlockJpaEntity {
 
     @Id
@@ -26,12 +30,9 @@ public class RoomBlockJpaEntity {
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
-    @Column(name = "reason", length = 500)
+    @Column(name = "reason")
     private String reason;
 
-    @Column(name = "active", nullable = false)
-    private boolean active = true;
-
     @Column(name = "created_at", nullable = false)
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
 }

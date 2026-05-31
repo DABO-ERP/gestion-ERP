@@ -1,9 +1,7 @@
 package com.daboerp.gestion.application.usecase.room;
 
 import com.daboerp.gestion.domain.entity.Room;
-import com.daboerp.gestion.domain.repository.RoomBlockRepository;
 import com.daboerp.gestion.domain.repository.RoomRepository;
-import com.daboerp.gestion.domain.valueobject.RoomId;
 import com.daboerp.gestion.domain.valueobject.RoomStatus;
 
 import java.time.LocalDate;
@@ -14,11 +12,9 @@ import java.util.stream.Collectors;
 public class FindAvailableRoomsUseCase {
 
     private final RoomRepository roomRepository;
-    private final RoomBlockRepository roomBlockRepository;
 
-    public FindAvailableRoomsUseCase(RoomRepository roomRepository, RoomBlockRepository roomBlockRepository) {
+    public FindAvailableRoomsUseCase(RoomRepository roomRepository) {
         this.roomRepository = Objects.requireNonNull(roomRepository, "Room repository cannot be null");
-        this.roomBlockRepository = Objects.requireNonNull(roomBlockRepository, "Room block repository cannot be null");
     }
 
     public List<Room> execute(FindAvailableRoomsQuery query) {
@@ -35,7 +31,7 @@ public class FindAvailableRoomsUseCase {
             } else {
                 candidateRooms = roomRepository.findAvailableRooms(query.checkIn(), query.checkOut());
             }
-            return filterBlockedRooms(candidateRooms, query.checkIn(), query.checkOut());
+            return candidateRooms;
         }
 
         List<Room> available = roomRepository.findByStatus(RoomStatus.AVAILABLE);
@@ -46,25 +42,9 @@ public class FindAvailableRoomsUseCase {
                 .collect(Collectors.toList());
         }
         if (query.checkIn() != null && query.checkOut() != null) {
-            return filterBlockedRooms(available, query.checkIn(), query.checkOut());
+            return available;
         }
-        return filterBlockedRooms(available, LocalDate.now(), LocalDate.now().plusDays(1));
-    }
-
-    private List<Room> filterBlockedRooms(List<Room> rooms, LocalDate checkIn, LocalDate checkOut) {
-        List<String> blockedRoomIds = roomBlockRepository.findAllActive().stream()
-            .filter(block -> block.overlaps(checkIn, checkOut))
-            .map(block -> block.getRoomId().getValue())
-            .distinct()
-            .toList();
-
-        if (blockedRoomIds.isEmpty()) {
-            return rooms;
-        }
-
-        return rooms.stream()
-            .filter(room -> !blockedRoomIds.contains(room.getId().getValue()))
-            .collect(Collectors.toList());
+        return available;
     }
 
     public record FindAvailableRoomsQuery(

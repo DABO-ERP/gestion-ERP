@@ -3,7 +3,6 @@ package com.daboerp.gestion.application.usecase.room;
 import com.daboerp.gestion.application.exception.ResourceNotFoundException;
 import com.daboerp.gestion.domain.entity.RoomBlock;
 import com.daboerp.gestion.domain.repository.RoomBlockRepository;
-import com.daboerp.gestion.domain.valueobject.RoomBlockId;
 
 import java.util.Objects;
 
@@ -17,16 +16,23 @@ public class UnblockRoomUseCase {
 
     public void execute(UnblockRoomCommand command) {
         Objects.requireNonNull(command, "Command cannot be null");
-        RoomBlockId blockId = RoomBlockId.of(command.blockId);
-        RoomBlock block = roomBlockRepository.findById(blockId)
-            .orElseThrow(() -> new ResourceNotFoundException("RoomBlock", command.blockId));
 
-        block.deactivate();
-        roomBlockRepository.save(block);
+        RoomBlock block = roomBlockRepository.findById(command.blockId())
+            .orElseThrow(() -> new ResourceNotFoundException("RoomBlock", command.blockId()));
+
+        if (!block.getRoomId().equals(command.roomId())) {
+            throw new ResourceNotFoundException("RoomBlock", command.blockId());
+        }
+
+        roomBlockRepository.deleteById(command.blockId());
     }
 
-    public record UnblockRoomCommand(String blockId) {
+    public record UnblockRoomCommand(
+        String roomId,
+        String blockId
+    ) {
         public UnblockRoomCommand {
+            Objects.requireNonNull(roomId, "Room ID cannot be null");
             Objects.requireNonNull(blockId, "Block ID cannot be null");
         }
     }

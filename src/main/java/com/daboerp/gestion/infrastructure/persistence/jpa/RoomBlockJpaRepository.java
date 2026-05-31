@@ -14,17 +14,12 @@ public interface RoomBlockJpaRepository extends JpaRepository<RoomBlockJpaEntity
 
     List<RoomBlockJpaEntity> findByRoomIdOrderByStartDateAsc(String roomId);
 
-    List<RoomBlockJpaEntity> findByRoomIdAndActiveTrueOrderByStartDateAsc(String roomId);
+    @Query("SELECT b FROM RoomBlockJpaEntity b WHERE b.roomId = :roomId AND b.startDate < :endDate AND b.endDate > :startDate")
+    List<RoomBlockJpaEntity> findOverlapping(@Param("roomId") String roomId,
+                                             @Param("startDate") LocalDate startDate,
+                                             @Param("endDate") LocalDate endDate);
 
-    @Query("SELECT b FROM RoomBlockJpaEntity b WHERE b.roomId = :roomId AND b.active = true " +
-           "AND NOT (b.endDate < :startDate OR b.startDate > :endDate)")
-    List<RoomBlockJpaEntity> findActiveByRoomIdInDateRange(@Param("roomId") String roomId,
-                                                           @Param("startDate") LocalDate startDate,
-                                                           @Param("endDate") LocalDate endDate);
-
-    @Query("SELECT b FROM RoomBlockJpaEntity b WHERE b.active = true " +
-           "AND b.startDate <= :date AND b.endDate >= :date")
-    List<RoomBlockJpaEntity> findActiveBlocksOnDate(@Param("date") LocalDate date);
-
-    List<RoomBlockJpaEntity> findByActiveTrueOrderByStartDateAsc();
+    @Query("SELECT b FROM RoomBlockJpaEntity b WHERE b.startDate < :endDate AND b.endDate > :startDate")
+    List<RoomBlockJpaEntity> findAllOverlappingRange(@Param("startDate") LocalDate startDate,
+                                                     @Param("endDate") LocalDate endDate);
 }

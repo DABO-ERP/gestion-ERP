@@ -2,11 +2,11 @@ package com.daboerp.gestion.application.usecase.room;
 
 import com.daboerp.gestion.domain.entity.RoomBlock;
 import com.daboerp.gestion.domain.repository.RoomBlockRepository;
-import com.daboerp.gestion.domain.valueobject.RoomBlockId;
-import com.daboerp.gestion.domain.valueobject.RoomId;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class GetRoomBlocksUseCase {
 
@@ -18,14 +18,23 @@ public class GetRoomBlocksUseCase {
 
     public List<RoomBlock> execute(GetRoomBlocksQuery query) {
         Objects.requireNonNull(query, "Query cannot be null");
-        RoomId roomId = RoomId.of(query.roomId);
-        if (query.activeOnly) {
-            return roomBlockRepository.findActiveByRoomId(roomId);
+
+        List<RoomBlock> blocks = roomBlockRepository.findByRoomId(query.roomId());
+
+        if (query.activeOnly()) {
+            LocalDate now = LocalDate.now();
+            blocks = blocks.stream()
+                .filter(block -> block.getEndDate().isAfter(now))
+                .collect(Collectors.toList());
         }
-        return roomBlockRepository.findByRoomId(roomId);
+
+        return blocks;
     }
 
-    public record GetRoomBlocksQuery(String roomId, boolean activeOnly) {
+    public record GetRoomBlocksQuery(
+        String roomId,
+        boolean activeOnly
+    ) {
         public GetRoomBlocksQuery {
             Objects.requireNonNull(roomId, "Room ID cannot be null");
         }
