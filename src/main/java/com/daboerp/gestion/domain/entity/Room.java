@@ -134,6 +134,10 @@ public class Room {
         amenities.remove(amenity);
     }
     
+    public boolean isOutOfService() {
+        return roomStatus == RoomStatus.OUT_OF_SERVICE;
+    }
+
     public boolean isAvailable() {
         return roomStatus == RoomStatus.AVAILABLE;
     }

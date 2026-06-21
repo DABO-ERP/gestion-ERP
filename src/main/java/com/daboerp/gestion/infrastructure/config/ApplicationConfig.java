@@ -73,6 +73,11 @@ public class ApplicationConfig {
         return new UpdateGuestUseCase(guestRepository);
     }
 
+    @Bean
+    public DeleteGuestUseCase deleteGuestUseCase(GuestRepository guestRepository) {
+        return new DeleteGuestUseCase(guestRepository);
+    }
+
     // Room use cases
 
     @Bean

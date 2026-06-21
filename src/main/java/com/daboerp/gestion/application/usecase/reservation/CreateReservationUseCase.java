@@ -51,11 +51,11 @@ public class CreateReservationUseCase {
         Room room = roomRepository.findById(roomId)
             .orElseThrow(() -> new ResourceNotFoundException("Room", command.roomId()));
         
-        // Validate room is available
-        if (!room.isAvailable()) {
-            throw new BusinessRuleViolationException("Room " + room.getRoomNumber() + " is not available");
+        // Reject only rooms that are physically out of service
+        if (room.isOutOfService()) {
+            throw new BusinessRuleViolationException("Room " + room.getRoomNumber() + " is out of service");
         }
-        
+
         // Check for overlapping reservations
         List<Reservation> overlapping = reservationRepository.findOverlappingReservations(
             roomId, command.checkIn(), command.checkOut()

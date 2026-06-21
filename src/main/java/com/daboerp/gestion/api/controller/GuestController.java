@@ -5,6 +5,7 @@ import com.daboerp.gestion.api.dto.GuestResponse;
 import com.daboerp.gestion.api.dto.UpdateGuestRequest;
 import com.daboerp.gestion.application.command.guest.CreateGuestCommand;
 import com.daboerp.gestion.application.usecase.guest.CreateGuestUseCase;
+import com.daboerp.gestion.application.usecase.guest.DeleteGuestUseCase;
 import com.daboerp.gestion.application.usecase.guest.GetGuestUseCase;
 import com.daboerp.gestion.application.usecase.guest.ListGuestsUseCase;
 import com.daboerp.gestion.application.usecase.guest.UpdateGuestUseCase;
@@ -36,15 +37,18 @@ public class GuestController {
     private final GetGuestUseCase getGuestUseCase;
     private final ListGuestsUseCase listGuestsUseCase;
     private final UpdateGuestUseCase updateGuestUseCase;
-    
+    private final DeleteGuestUseCase deleteGuestUseCase;
+
     public GuestController(CreateGuestUseCase createGuestUseCase,
                           GetGuestUseCase getGuestUseCase,
                           ListGuestsUseCase listGuestsUseCase,
-                          UpdateGuestUseCase updateGuestUseCase) {
+                          UpdateGuestUseCase updateGuestUseCase,
+                          DeleteGuestUseCase deleteGuestUseCase) {
         this.createGuestUseCase = createGuestUseCase;
         this.getGuestUseCase = getGuestUseCase;
         this.listGuestsUseCase = listGuestsUseCase;
         this.updateGuestUseCase = updateGuestUseCase;
+        this.deleteGuestUseCase = deleteGuestUseCase;
     }
     
     @PostMapping
@@ -111,6 +115,18 @@ public class GuestController {
         return ResponseEntity.ok(toResponse(guest));
     }
     
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Delete a guest", description = "Permanently remove a guest from the system")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Guest deleted successfully"),
+        @ApiResponse(responseCode = "404", description = "Guest not found")
+    })
+    public void deleteGuest(
+            @Parameter(description = "Guest ID") @PathVariable String id) {
+        deleteGuestUseCase.execute(id);
+    }
+
     @GetMapping
     @Operation(summary = "List all guests", description = "Get a list of all guests or search by name")
     @ApiResponses(value = {

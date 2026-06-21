@@ -1,13 +1,8 @@
 package com.daboerp.gestion.domain.valueobject;
 
-/**
- * Guest nationalities enumeration.
- * Extensible list of supported nationalities.
- */
 public enum Nationality {
+    // Latin America
     COLOMBIA,
-    UNITED_STATES,
-    SPAIN,
     MEXICO,
     ARGENTINA,
     BRAZIL,
@@ -15,14 +10,62 @@ public enum Nationality {
     PERU,
     VENEZUELA,
     ECUADOR,
-    CHINA,
-    JAPAN,
-    SOUTH_KOREA,
+    BOLIVIA,
+    PARAGUAY,
+    URUGUAY,
+    PANAMA,
+    COSTA_RICA,
+    GUATEMALA,
+    HONDURAS,
+    EL_SALVADOR,
+    NICARAGUA,
+    CUBA,
+    DOMINICAN_REPUBLIC,
+    PUERTO_RICO,
+    // North America
+    UNITED_STATES,
+    CANADA,
+    // Europe
+    SPAIN,
     GERMANY,
     FRANCE,
     ITALY,
     UNITED_KINGDOM,
-    CANADA,
+    PORTUGAL,
+    NETHERLANDS,
+    BELGIUM,
+    SWITZERLAND,
+    SWEDEN,
+    NORWAY,
+    DENMARK,
+    POLAND,
+    RUSSIA,
+    UKRAINE,
+    AUSTRIA,
+    IRELAND,
+    GREECE,
+    TURKEY,
+    // Asia
+    CHINA,
+    JAPAN,
+    SOUTH_KOREA,
+    INDIA,
+    THAILAND,
+    VIETNAM,
+    INDONESIA,
+    PHILIPPINES,
+    MALAYSIA,
+    SINGAPORE,
+    ISRAEL,
+    SAUDI_ARABIA,
+    UNITED_ARAB_EMIRATES,
+    // Oceania
     AUSTRALIA,
+    NEW_ZEALAND,
+    // Africa
+    SOUTH_AFRICA,
+    NIGERIA,
+    EGYPT,
+    MOROCCO,
     OTHER
 }
