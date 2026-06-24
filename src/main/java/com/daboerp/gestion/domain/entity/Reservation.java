@@ -220,6 +220,14 @@ public class Reservation {
     public List<Guest> getGuests() {
         return Collections.unmodifiableList(guests);
     }
+
+    public Guest getPrincipalGuest() {
+        return guestPrincipal;
+    }
+
+    public String getReservationCode() {
+        return reservationCode;
+    }
     
     /**
      * Builder Class - Builder Pattern Implementation

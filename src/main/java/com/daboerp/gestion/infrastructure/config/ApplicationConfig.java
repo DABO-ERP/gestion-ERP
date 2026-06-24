@@ -6,12 +6,17 @@ import com.daboerp.gestion.application.decorator.LoggingCommandHandlerDecorator;
 import com.daboerp.gestion.application.decorator.ValidationCommandHandlerDecorator;
 import com.daboerp.gestion.application.usecase.documenttype.*;
 import com.daboerp.gestion.application.usecase.guest.*;
+import com.daboerp.gestion.application.usecase.payment.ListAllPaymentsUseCase;
+import com.daboerp.gestion.application.usecase.payment.ListPaymentsUseCase;
+import com.daboerp.gestion.application.usecase.payment.RegisterPaymentUseCase;
+import com.daboerp.gestion.application.usecase.payment.VoidPaymentUseCase;
 import com.daboerp.gestion.application.usecase.reservation.*;
 import com.daboerp.gestion.application.usecase.room.*;
 import com.daboerp.gestion.domain.entity.Guest;
 import com.daboerp.gestion.domain.event.DomainEventPublisher;
 import com.daboerp.gestion.domain.factory.guest.GuestFactory;
 import com.daboerp.gestion.domain.repository.*;
+import com.daboerp.gestion.domain.repository.PaymentRepository;
 import com.daboerp.gestion.domain.strategy.pricing.*;
 import jakarta.validation.Validator;
 import org.springframework.context.annotation.Bean;
@@ -260,5 +265,29 @@ public class ApplicationConfig {
     @Bean
     public GetAllBlocksUseCase getAllBlocksUseCase(RoomBlockRepository roomBlockRepository) {
         return new GetAllBlocksUseCase(roomBlockRepository);
+    }
+
+    // Payment use cases
+
+    @Bean
+    public RegisterPaymentUseCase registerPaymentUseCase(PaymentRepository paymentRepository,
+                                                         ReservationRepository reservationRepository) {
+        return new RegisterPaymentUseCase(paymentRepository, reservationRepository);
+    }
+
+    @Bean
+    public ListPaymentsUseCase listPaymentsUseCase(PaymentRepository paymentRepository) {
+        return new ListPaymentsUseCase(paymentRepository);
+    }
+
+    @Bean
+    public VoidPaymentUseCase voidPaymentUseCase(PaymentRepository paymentRepository,
+                                                  ReservationRepository reservationRepository) {
+        return new VoidPaymentUseCase(paymentRepository, reservationRepository);
+    }
+
+    @Bean
+    public ListAllPaymentsUseCase listAllPaymentsUseCase(PaymentRepository paymentRepository) {
+        return new ListAllPaymentsUseCase(paymentRepository);
     }
 }
