@@ -140,7 +140,8 @@ public class ReservationController {
             request.quotedAmount(),
             request.source(),
             request.guestPrincipalId(),
-            request.roomId()
+            request.roomId(),
+            request.additionalGuestIds()
         );
 
         Reservation reservation = updateReservationUseCase.execute(command);
@@ -254,6 +255,12 @@ public class ReservationController {
     }
 
     private ReservationResponse toResponse(Reservation reservation) {
+        String principalId = reservation.getGuestPrincipal().getId().getValue();
+        List<String> additionalGuestIds = reservation.getGuests().stream()
+            .map(g -> g.getId().getValue())
+            .filter(id -> !id.equals(principalId))
+            .collect(Collectors.toList());
+
         return new ReservationResponse(
             reservation.getId().getValue(),
             reservation.getReservationCode(),
@@ -262,11 +269,12 @@ public class ReservationController {
             reservation.getStatus().getStatusType().name(),
             reservation.getQuotedAmount(),
             reservation.getSource().name(),
-            reservation.getGuestPrincipal().getId().getValue(),
+            principalId,
             reservation.getGuestPrincipal().getFullName(),
             reservation.getRoom().getId().getValue(),
             reservation.getRoom().getRoomNumber(),
-            reservation.getCreatedAt()
+            reservation.getCreatedAt(),
+            additionalGuestIds
         );
     }
 }

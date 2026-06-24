@@ -81,6 +81,20 @@ public class UpdateReservationUseCase {
             reservation.updateRoom(room);
         }
 
+        if (command.additionalGuestIds() != null) {
+            List<Guest> currentAdditional = reservation.getGuests().stream()
+                .filter(g -> !g.getId().equals(reservation.getGuestPrincipal().getId()))
+                .toList();
+            currentAdditional.forEach(reservation::removeGuest);
+
+            for (String guestId : command.additionalGuestIds()) {
+                GuestId gid = GuestId.of(guestId);
+                Guest guest = guestRepository.findById(gid)
+                    .orElseThrow(() -> new ResourceNotFoundException("Guest", guestId));
+                reservation.addGuest(guest);
+            }
+        }
+
         return reservationRepository.save(reservation);
     }
 
@@ -91,7 +105,8 @@ public class UpdateReservationUseCase {
         BigDecimal quotedAmount,
         Source source,
         String guestPrincipalId,
-        String roomId
+        String roomId,
+        List<String> additionalGuestIds
     ) {
         public UpdateReservationCommand {
             Objects.requireNonNull(reservationId, "Reservation ID cannot be null");
