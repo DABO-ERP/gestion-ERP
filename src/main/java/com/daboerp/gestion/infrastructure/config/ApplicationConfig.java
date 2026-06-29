@@ -6,6 +6,9 @@ import com.daboerp.gestion.application.decorator.LoggingCommandHandlerDecorator;
 import com.daboerp.gestion.application.decorator.ValidationCommandHandlerDecorator;
 import com.daboerp.gestion.application.usecase.documenttype.*;
 import com.daboerp.gestion.application.usecase.guest.*;
+import com.daboerp.gestion.application.usecase.landing.GetAllLandingSettingsUseCase;
+import com.daboerp.gestion.application.usecase.landing.GetLandingSettingUseCase;
+import com.daboerp.gestion.application.usecase.landing.SaveLandingSettingUseCase;
 import com.daboerp.gestion.application.usecase.payment.ListAllPaymentsUseCase;
 import com.daboerp.gestion.application.usecase.payment.ListPaymentsUseCase;
 import com.daboerp.gestion.application.usecase.payment.RegisterPaymentUseCase;
@@ -16,6 +19,7 @@ import com.daboerp.gestion.domain.entity.Guest;
 import com.daboerp.gestion.domain.event.DomainEventPublisher;
 import com.daboerp.gestion.domain.factory.guest.GuestFactory;
 import com.daboerp.gestion.domain.repository.*;
+import com.daboerp.gestion.domain.repository.LandingSettingRepository;
 import com.daboerp.gestion.domain.repository.PaymentRepository;
 import com.daboerp.gestion.domain.strategy.pricing.*;
 import jakarta.validation.Validator;
@@ -289,5 +293,22 @@ public class ApplicationConfig {
     @Bean
     public ListAllPaymentsUseCase listAllPaymentsUseCase(PaymentRepository paymentRepository) {
         return new ListAllPaymentsUseCase(paymentRepository);
+    }
+
+    // Landing Setting use cases
+
+    @Bean
+    public GetAllLandingSettingsUseCase getAllLandingSettingsUseCase(LandingSettingRepository landingSettingRepository) {
+        return new GetAllLandingSettingsUseCase(landingSettingRepository);
+    }
+
+    @Bean
+    public GetLandingSettingUseCase getLandingSettingUseCase(LandingSettingRepository landingSettingRepository) {
+        return new GetLandingSettingUseCase(landingSettingRepository);
+    }
+
+    @Bean
+    public SaveLandingSettingUseCase saveLandingSettingUseCase(LandingSettingRepository landingSettingRepository) {
+        return new SaveLandingSettingUseCase(landingSettingRepository);
     }
 }
