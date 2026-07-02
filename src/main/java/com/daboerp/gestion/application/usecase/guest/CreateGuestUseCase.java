@@ -28,8 +28,8 @@ public class CreateGuestUseCase implements CommandHandler<CreateGuestCommand, Gu
     public Guest handle(CreateGuestCommand command) {
         Objects.requireNonNull(command, "Command cannot be null");
         
-        // Validate guest doesn't already exist
-        if (guestRepository.existsByEmail(command.email())) {
+        // Validate guest doesn't already exist by email (only if email is provided)
+        if (command.email() != null && !command.email().isBlank() && guestRepository.existsByEmail(command.email())) {
             throw new ResourceAlreadyExistsException("Guest", command.email());
         }
         

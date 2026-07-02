@@ -2,6 +2,7 @@ package com.daboerp.gestion.api.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * DTO for reservation response.
@@ -18,5 +19,6 @@ public record ReservationResponse(
     String guestPrincipalName,
     String roomId,
     Integer roomNumber,
-    LocalDate createdAt
+    LocalDate createdAt,
+    List<String> additionalGuestIds
 ) {}

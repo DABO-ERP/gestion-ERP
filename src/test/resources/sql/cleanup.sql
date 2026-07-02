@@ -2,6 +2,7 @@
 -- This script cleans the database before each test scenario
 
 -- Clean tables in correct order to handle foreign key constraints
+DELETE FROM payments;
 DELETE FROM reservation_guests;
 DELETE FROM reservations;
 DELETE FROM rooms;

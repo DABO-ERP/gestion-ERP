@@ -46,7 +46,6 @@ public class UpdateGuestUseCase {
             Objects.requireNonNull(guestId, "Guest ID cannot be null");
             Objects.requireNonNull(firstName, "First name cannot be null");
             Objects.requireNonNull(lastName, "Last name cannot be null");
-            Objects.requireNonNull(email, "Email cannot be null");
         }
     }
 }

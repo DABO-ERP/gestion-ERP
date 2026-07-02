@@ -52,7 +52,6 @@ public class GuestFactory implements EntityFactory<Guest, GuestFactory.GuestBuil
     public void validate(GuestBuilder builder) {
         Objects.requireNonNull(builder.firstName, "First name cannot be null");
         Objects.requireNonNull(builder.lastName, "Last name cannot be null");
-        Objects.requireNonNull(builder.email, "Email cannot be null");
         Objects.requireNonNull(builder.nationality, "Nationality cannot be null");
         Objects.requireNonNull(builder.documentNumber, "Document number cannot be null");
         Objects.requireNonNull(builder.documentType, "Document type cannot be null");

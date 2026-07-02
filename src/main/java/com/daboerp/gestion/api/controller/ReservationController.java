@@ -2,9 +2,15 @@ package com.daboerp.gestion.api.controller;
 
 import com.daboerp.gestion.api.dto.CreateReservationRequest;
 import com.daboerp.gestion.api.dto.PaginatedResponse;
+import com.daboerp.gestion.api.dto.PaymentResponse;
+import com.daboerp.gestion.api.dto.RegisterPaymentRequest;
 import com.daboerp.gestion.api.dto.ReservationResponse;
 import com.daboerp.gestion.api.dto.UpdateReservationRequest;
+import com.daboerp.gestion.application.usecase.payment.ListPaymentsUseCase;
+import com.daboerp.gestion.application.usecase.payment.RegisterPaymentUseCase;
+import com.daboerp.gestion.application.usecase.payment.VoidPaymentUseCase;
 import com.daboerp.gestion.application.usecase.reservation.*;
+import com.daboerp.gestion.domain.entity.Payment;
 import com.daboerp.gestion.domain.entity.Reservation;
 import com.daboerp.gestion.domain.entity.StatusType;
 import com.daboerp.gestion.domain.valueobject.Source;
@@ -38,6 +44,9 @@ public class ReservationController {
     private final GetReservationUseCase getReservationUseCase;
     private final UpdateReservationUseCase updateReservationUseCase;
     private final CancelReservationUseCase cancelReservationUseCase;
+    private final RegisterPaymentUseCase registerPaymentUseCase;
+    private final ListPaymentsUseCase listPaymentsUseCase;
+    private final VoidPaymentUseCase voidPaymentUseCase;
 
     public ReservationController(CreateReservationUseCase createReservationUseCase,
                                 ListReservationsUseCase listReservationsUseCase,
@@ -46,7 +55,10 @@ public class ReservationController {
                                 FilterReservationsUseCase filterReservationsUseCase,
                                 GetReservationUseCase getReservationUseCase,
                                 UpdateReservationUseCase updateReservationUseCase,
-                                CancelReservationUseCase cancelReservationUseCase) {
+                                CancelReservationUseCase cancelReservationUseCase,
+                                RegisterPaymentUseCase registerPaymentUseCase,
+                                ListPaymentsUseCase listPaymentsUseCase,
+                                VoidPaymentUseCase voidPaymentUseCase) {
         this.createReservationUseCase = createReservationUseCase;
         this.listReservationsUseCase = listReservationsUseCase;
         this.checkInReservationUseCase = checkInReservationUseCase;
@@ -55,6 +67,9 @@ public class ReservationController {
         this.getReservationUseCase = getReservationUseCase;
         this.updateReservationUseCase = updateReservationUseCase;
         this.cancelReservationUseCase = cancelReservationUseCase;
+        this.registerPaymentUseCase = registerPaymentUseCase;
+        this.listPaymentsUseCase = listPaymentsUseCase;
+        this.voidPaymentUseCase = voidPaymentUseCase;
     }
 
     @PostMapping
@@ -140,7 +155,8 @@ public class ReservationController {
             request.quotedAmount(),
             request.source(),
             request.guestPrincipalId(),
-            request.roomId()
+            request.roomId(),
+            request.additionalGuestIds()
         );
 
         Reservation reservation = updateReservationUseCase.execute(command);
@@ -253,7 +269,65 @@ public class ReservationController {
         return ResponseEntity.ok(toResponse(reservation));
     }
 
+    @GetMapping("/{id}/payments")
+    @Operation(summary = "Get payments for a reservation")
+    public ResponseEntity<List<PaymentResponse>> listPayments(
+            @Parameter(description = "Reservation ID") @PathVariable String id) {
+        List<Payment> payments = listPaymentsUseCase.executeByReservation(id);
+        List<PaymentResponse> response = payments.stream()
+            .map(this::toPaymentResponse)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/payments")
+    @Operation(summary = "Register a payment for a reservation")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Payment registered"),
+        @ApiResponse(responseCode = "400", description = "Invalid input"),
+        @ApiResponse(responseCode = "404", description = "Reservation not found"),
+        @ApiResponse(responseCode = "422", description = "Payment exceeds balance")
+    })
+    public ResponseEntity<PaymentResponse> registerPayment(
+            @Parameter(description = "Reservation ID") @PathVariable String id,
+            @Valid @RequestBody RegisterPaymentRequest request) {
+        var command = new RegisterPaymentUseCase.RegisterPaymentCommand(
+            id, request.amount(), request.method(), request.note());
+        Payment payment = registerPaymentUseCase.execute(command);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toPaymentResponse(payment));
+    }
+
+    @DeleteMapping("/{id}/payments/{paymentId}")
+    @Operation(summary = "Void a payment")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Payment voided"),
+        @ApiResponse(responseCode = "404", description = "Payment not found")
+    })
+    public ResponseEntity<Void> voidPayment(
+            @Parameter(description = "Reservation ID") @PathVariable String id,
+            @Parameter(description = "Payment ID") @PathVariable String paymentId) {
+        voidPaymentUseCase.execute(paymentId);
+        return ResponseEntity.noContent().build();
+    }
+
+    private PaymentResponse toPaymentResponse(Payment payment) {
+        return new PaymentResponse(
+            payment.getId().getValue(),
+            payment.getReservationId().getValue(),
+            payment.getAmount(),
+            payment.getMethod(),
+            payment.getNote(),
+            payment.getPaidAt(),
+            payment.getCreatedAt(),
+            payment.isVoided()
+        );
+    }
+
     private ReservationResponse toResponse(Reservation reservation) {
+        List<String> guestIds = reservation.getGuests().stream()
+            .filter(g -> !g.getId().getValue().equals(reservation.getGuestPrincipal().getId().getValue()))
+            .map(g -> g.getId().getValue())
+            .collect(Collectors.toList());
         return new ReservationResponse(
             reservation.getId().getValue(),
             reservation.getReservationCode(),
@@ -266,7 +340,8 @@ public class ReservationController {
             reservation.getGuestPrincipal().getFullName(),
             reservation.getRoom().getId().getValue(),
             reservation.getRoom().getRoomNumber(),
-            reservation.getCreatedAt()
+            reservation.getCreatedAt(),
+            guestIds
         );
     }
 }

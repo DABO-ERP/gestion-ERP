@@ -15,8 +15,10 @@ import com.daboerp.gestion.domain.valueobject.Source;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class UpdateReservationUseCase {
 
@@ -81,6 +83,30 @@ public class UpdateReservationUseCase {
             reservation.updateRoom(room);
         }
 
+        if (command.additionalGuestIds() != null) {
+            String principalId = reservation.getGuestPrincipal().getId().getValue();
+            List<String> currentIds = reservation.getGuests().stream()
+                .map(g -> g.getId().getValue())
+                .collect(Collectors.toList());
+
+            List<Guest> guestsToRemove = reservation.getGuests().stream()
+                .filter(g -> !g.getId().getValue().equals(principalId))
+                .filter(g -> !command.additionalGuestIds().contains(g.getId().getValue()))
+                .collect(Collectors.toList());
+            for (Guest guestToRemove : guestsToRemove) {
+                reservation.removeGuest(guestToRemove);
+            }
+
+            for (String guestId : command.additionalGuestIds()) {
+                if (!currentIds.contains(guestId)) {
+                    GuestId addGuestId = GuestId.of(guestId);
+                    Guest additionalGuest = guestRepository.findById(addGuestId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Guest", guestId));
+                    reservation.addGuest(additionalGuest);
+                }
+            }
+        }
+
         return reservationRepository.save(reservation);
     }
 
@@ -91,7 +117,8 @@ public class UpdateReservationUseCase {
         BigDecimal quotedAmount,
         Source source,
         String guestPrincipalId,
-        String roomId
+        String roomId,
+        List<String> additionalGuestIds
     ) {
         public UpdateReservationCommand {
             Objects.requireNonNull(reservationId, "Reservation ID cannot be null");
