@@ -68,3 +68,15 @@ CREATE TABLE IF NOT EXISTS reservation_guests (
     FOREIGN KEY (reservation_id) REFERENCES reservations(id),
     FOREIGN KEY (guest_id) REFERENCES guests(id)
 );
+
+CREATE TABLE IF NOT EXISTS payments (
+    id VARCHAR(255) PRIMARY KEY,
+    reservation_id VARCHAR(255) NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    method VARCHAR(20) NOT NULL,
+    note TEXT,
+    paid_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    voided BOOLEAN NOT NULL DEFAULT FALSE,
+    FOREIGN KEY (reservation_id) REFERENCES reservations(id)
+);

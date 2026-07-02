@@ -38,6 +38,7 @@ public class CommonSteps {
     @Given("the database is clean")
     public void theDatabaseIsClean() {
         // Clean tables in correct order to handle foreign key constraints
+        jdbcTemplate.execute("DELETE FROM payments");
         jdbcTemplate.execute("DELETE FROM reservation_guests");
         jdbcTemplate.execute("DELETE FROM reservations");
         jdbcTemplate.execute("DELETE FROM beds");

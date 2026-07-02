@@ -57,7 +57,7 @@ public class Guest {
         this.id = Objects.requireNonNull(id, "Guest ID cannot be null");
         this.firstName = Objects.requireNonNull(firstName, "First name cannot be null");
         this.lastName = Objects.requireNonNull(lastName, "Last name cannot be null");
-        this.email = Objects.requireNonNull(email, "Email cannot be null");
+        this.email = email;
         this.phone = phone;
         this.dateOfBirth = dateOfBirth;
         this.nationality = Objects.requireNonNull(nationality, "Nationality cannot be null");
@@ -96,7 +96,6 @@ public class Guest {
     
     // Business methods
     public void updateContactInfo(String email, String phone) {
-        Objects.requireNonNull(email, "Email cannot be null");
         validateEmail(email);
         this.email = email;
         this.phone = phone;
@@ -126,7 +125,7 @@ public class Guest {
     }
     
     private void validateEmail(String email) {
-        if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+        if (email != null && !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
             throw new IllegalArgumentException("Invalid email format: " + email);
         }
     }

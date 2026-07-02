@@ -2,6 +2,7 @@ package com.daboerp.gestion.acceptance.steps;
 
 import com.daboerp.gestion.acceptance.context.TestContext;
 import com.daboerp.gestion.api.dto.*;
+import com.daboerp.gestion.domain.entity.PaymentMethod;
 import com.daboerp.gestion.domain.valueobject.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -263,9 +264,20 @@ public class ReservationManagementSteps {
         // First create a confirmed reservation
         aConfirmedReservationExistsForTheGuest();
         
-        // Then check it in
+        // Register full payment
         String reservationId = testContext.getExistingReservation().id();
+        RegisterPaymentRequest paymentReq = new RegisterPaymentRequest(
+            testContext.getExistingReservation().quotedAmount(),
+            PaymentMethod.CASH,
+            "Test payment"
+        );
+        restTemplate.postForEntity(
+            RESERVATIONS_API_URL + "/" + reservationId + "/payments",
+            paymentReq,
+            PaymentResponse.class
+        );
         
+        // Then check it in
         ResponseEntity<ReservationResponse> response = restTemplate.exchange(
             RESERVATIONS_API_URL + "/" + reservationId + "/check-in",
             HttpMethod.POST,
@@ -324,20 +336,25 @@ public class ReservationManagementSteps {
                 ReservationResponse created = response.getBody();
                 
                 if (created != null) {
-                    if ("CHECKED_IN".equals(expectedStatus)) {
+                    if ("CHECKED_IN".equals(expectedStatus) || "CHECKED_OUT".equals(expectedStatus)) {
+                        RegisterPaymentRequest paymentReq = new RegisterPaymentRequest(
+                            created.quotedAmount(),
+                            PaymentMethod.CASH,
+                            "Test payment"
+                        );
+                        restTemplate.postForEntity(
+                            RESERVATIONS_API_URL + "/" + created.id() + "/payments",
+                            paymentReq,
+                            PaymentResponse.class
+                        );
                         restTemplate.exchange(
                             RESERVATIONS_API_URL + "/" + created.id() + "/check-in",
                             HttpMethod.POST,
                             null,
                             ReservationResponse.class
                         );
-                    } else if ("CHECKED_OUT".equals(expectedStatus)) {
-                        restTemplate.exchange(
-                            RESERVATIONS_API_URL + "/" + created.id() + "/check-in",
-                            HttpMethod.POST,
-                            null,
-                            ReservationResponse.class
-                        );
+                    }
+                    if ("CHECKED_OUT".equals(expectedStatus)) {
                         restTemplate.exchange(
                             RESERVATIONS_API_URL + "/" + created.id() + "/check-out",
                             HttpMethod.POST,
@@ -353,6 +370,17 @@ public class ReservationManagementSteps {
     @When("I check-in the reservation")
     public void iCheckInTheReservation() {
         String reservationId = testContext.getExistingReservation().id();
+        
+        RegisterPaymentRequest paymentReq = new RegisterPaymentRequest(
+            testContext.getExistingReservation().quotedAmount(),
+            PaymentMethod.CASH,
+            "Test payment"
+        );
+        restTemplate.postForEntity(
+            RESERVATIONS_API_URL + "/" + reservationId + "/payments",
+            paymentReq,
+            PaymentResponse.class
+        );
         
         ResponseEntity<ReservationResponse> response = restTemplate.exchange(
             RESERVATIONS_API_URL + "/" + reservationId + "/check-in",

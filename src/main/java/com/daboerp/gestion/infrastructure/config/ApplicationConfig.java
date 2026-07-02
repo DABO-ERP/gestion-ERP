@@ -6,6 +6,7 @@ import com.daboerp.gestion.application.decorator.LoggingCommandHandlerDecorator;
 import com.daboerp.gestion.application.decorator.ValidationCommandHandlerDecorator;
 import com.daboerp.gestion.application.usecase.documenttype.*;
 import com.daboerp.gestion.application.usecase.guest.*;
+import com.daboerp.gestion.application.usecase.payment.*;
 import com.daboerp.gestion.application.usecase.reservation.*;
 import com.daboerp.gestion.application.usecase.room.*;
 import com.daboerp.gestion.domain.entity.Guest;
@@ -156,8 +157,9 @@ public class ApplicationConfig {
 
     @Bean
     public CheckInReservationUseCase checkInReservationUseCase(ReservationRepository reservationRepository,
-                                                              RoomRepository roomRepository) {
-        return new CheckInReservationUseCase(reservationRepository, roomRepository);
+                                                               RoomRepository roomRepository,
+                                                               PaymentRepository paymentRepository) {
+        return new CheckInReservationUseCase(reservationRepository, roomRepository, paymentRepository);
     }
 
     @Bean
@@ -187,6 +189,25 @@ public class ApplicationConfig {
     public CancelReservationUseCase cancelReservationUseCase(ReservationRepository reservationRepository,
                                                              RoomRepository roomRepository) {
         return new CancelReservationUseCase(reservationRepository, roomRepository);
+    }
+
+    // Payment use cases
+
+    @Bean
+    public RegisterPaymentUseCase registerPaymentUseCase(PaymentRepository paymentRepository,
+                                                         ReservationRepository reservationRepository) {
+        return new RegisterPaymentUseCase(paymentRepository, reservationRepository);
+    }
+
+    @Bean
+    public ListPaymentsUseCase listPaymentsUseCase(PaymentRepository paymentRepository) {
+        return new ListPaymentsUseCase(paymentRepository);
+    }
+
+    @Bean
+    public VoidPaymentUseCase voidPaymentUseCase(PaymentRepository paymentRepository,
+                                                  ReservationRepository reservationRepository) {
+        return new VoidPaymentUseCase(paymentRepository, reservationRepository);
     }
 
     // Document Type use cases

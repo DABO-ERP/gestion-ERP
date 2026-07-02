@@ -32,7 +32,7 @@ public class GuestJpaEntity {
     @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
     
-    @Column(name = "email", nullable = false, unique = true, length = 255)
+    @Column(name = "email", nullable = true, length = 255)
     private String email;
     
     @Column(name = "phone", length = 20)

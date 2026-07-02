@@ -28,7 +28,6 @@ public record CreateGuestCommand(
         Objects.requireNonNull(commandId, "Command ID cannot be null");
         Objects.requireNonNull(firstName, "First name cannot be null");
         Objects.requireNonNull(lastName, "Last name cannot be null");
-        Objects.requireNonNull(email, "Email cannot be null");
         Objects.requireNonNull(nationality, "Nationality cannot be null");
         Objects.requireNonNull(documentNumber, "Document number cannot be null");
         Objects.requireNonNull(documentType, "Document type cannot be null");
@@ -38,9 +37,6 @@ public record CreateGuestCommand(
         }
         if (lastName.trim().isEmpty()) {
             throw new IllegalArgumentException("Last name cannot be empty");
-        }
-        if (email.trim().isEmpty()) {
-            throw new IllegalArgumentException("Email cannot be empty");
         }
     }
     
