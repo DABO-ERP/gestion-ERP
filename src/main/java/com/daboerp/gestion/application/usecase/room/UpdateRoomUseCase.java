@@ -13,6 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Use case for updating an existing room's properties.
+ */
 public class UpdateRoomUseCase {
 
     private final RoomRepository roomRepository;

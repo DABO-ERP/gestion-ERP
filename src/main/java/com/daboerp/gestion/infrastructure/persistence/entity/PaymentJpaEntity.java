@@ -10,6 +10,10 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * JPA entity for Payment persistence.
+ * Framework-specific, isolated from domain.
+ */
 @Entity
 @Table(name = "payments")
 @Getter

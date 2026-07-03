@@ -6,6 +6,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * Spring Data JPA repository for Payment persistence.
+ */
 @Repository
 public interface PaymentJpaRepository extends JpaRepository<PaymentJpaEntity, String> {
 

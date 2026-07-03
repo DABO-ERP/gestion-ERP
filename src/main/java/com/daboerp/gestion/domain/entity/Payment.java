@@ -7,6 +7,10 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+/**
+ * Entity representing a payment made for a reservation.
+ * Supports marking as voided and enforces positive amount validation.
+ */
 public class Payment {
 
     private final PaymentId id;

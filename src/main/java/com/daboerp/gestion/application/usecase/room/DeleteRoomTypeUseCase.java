@@ -6,6 +6,9 @@ import com.daboerp.gestion.domain.valueobject.RoomTypeId;
 
 import java.util.Objects;
 
+/**
+ * Use case for deleting a room type.
+ */
 public class DeleteRoomTypeUseCase {
 
     private final RoomTypeRepository roomTypeRepository;

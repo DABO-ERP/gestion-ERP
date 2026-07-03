@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Use case for reactivating a previously deleted room with optional updates.
+ */
 public class ReactivateRoomUseCase {
 
     private final RoomRepository roomRepository;

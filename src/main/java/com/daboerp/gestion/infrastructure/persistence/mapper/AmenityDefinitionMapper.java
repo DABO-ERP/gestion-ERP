@@ -5,6 +5,10 @@ import com.daboerp.gestion.domain.valueobject.AmenityDefinitionId;
 import com.daboerp.gestion.infrastructure.persistence.entity.AmenityDefinitionJpaEntity;
 import org.springframework.stereotype.Component;
 
+/**
+ * Mapper between AmenityDefinition domain entity and JPA entity.
+ * Handles conversion between domain and infrastructure layers.
+ */
 @Component
 public class AmenityDefinitionMapper {
 

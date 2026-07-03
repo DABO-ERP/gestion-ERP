@@ -2,6 +2,9 @@ package com.daboerp.gestion.api.dto;
 
 import java.time.LocalDate;
 
+/**
+ * Response DTO containing room block data.
+ */
 public record RoomBlockResponse(
     String id,
     String roomId,

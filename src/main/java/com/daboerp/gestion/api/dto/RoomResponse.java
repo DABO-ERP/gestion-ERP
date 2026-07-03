@@ -5,6 +5,9 @@ import com.daboerp.gestion.domain.valueobject.RoomStatus;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Response DTO containing room data.
+ */
 public record RoomResponse(
     String id,
     Integer roomNumber,

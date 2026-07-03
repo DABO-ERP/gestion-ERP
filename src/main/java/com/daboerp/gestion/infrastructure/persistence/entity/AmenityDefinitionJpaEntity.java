@@ -6,6 +6,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * JPA entity for AmenityDefinition persistence.
+ * Framework-specific, isolated from domain.
+ */
 @Entity
 @Table(name = "amenity_definitions")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor

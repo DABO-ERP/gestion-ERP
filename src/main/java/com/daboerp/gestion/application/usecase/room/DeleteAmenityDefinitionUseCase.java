@@ -10,6 +10,10 @@ import com.daboerp.gestion.domain.valueobject.Amenity;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Use case for deleting an amenity definition.
+ * Removes the amenity from all rooms that use it before deleting the definition.
+ */
 public class DeleteAmenityDefinitionUseCase {
 
     private final AmenityDefinitionRepository amenityDefinitionRepository;

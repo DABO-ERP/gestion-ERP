@@ -6,6 +6,9 @@ import com.daboerp.gestion.domain.repository.RoomBlockRepository;
 
 import java.util.Objects;
 
+/**
+ * Use case for removing a block from a room.
+ */
 public class UnblockRoomUseCase {
 
     private final RoomBlockRepository roomBlockRepository;

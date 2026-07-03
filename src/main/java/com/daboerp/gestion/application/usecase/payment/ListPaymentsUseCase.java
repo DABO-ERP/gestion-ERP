@@ -7,6 +7,9 @@ import com.daboerp.gestion.domain.valueobject.ReservationId;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Use case for listing payments, optionally filtered by reservation.
+ */
 public class ListPaymentsUseCase {
 
     private final PaymentRepository paymentRepository;

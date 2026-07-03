@@ -6,6 +6,9 @@ import com.daboerp.gestion.domain.repository.AmenityDefinitionRepository;
 
 import java.util.Objects;
 
+/**
+ * Use case for creating a new amenity definition.
+ */
 public class CreateAmenityDefinitionUseCase {
 
     private final AmenityDefinitionRepository repository;

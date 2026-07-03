@@ -7,6 +7,9 @@ import com.daboerp.gestion.domain.valueobject.ReservationId;
 
 import java.util.Objects;
 
+/**
+ * Use case for retrieving a reservation by ID.
+ */
 public class GetReservationUseCase {
 
     private final ReservationRepository reservationRepository;

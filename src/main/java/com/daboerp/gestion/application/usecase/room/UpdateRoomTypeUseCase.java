@@ -9,6 +9,9 @@ import com.daboerp.gestion.domain.valueobject.RoomTypeId;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+/**
+ * Use case for updating an existing room type.
+ */
 public class UpdateRoomTypeUseCase {
 
     private final RoomTypeRepository roomTypeRepository;

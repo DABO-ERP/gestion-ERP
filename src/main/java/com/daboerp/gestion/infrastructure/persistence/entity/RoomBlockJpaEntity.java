@@ -9,6 +9,10 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * JPA entity for RoomBlock persistence.
+ * Framework-specific, isolated from domain.
+ */
 @Entity
 @Table(name = "room_blocks")
 @Getter

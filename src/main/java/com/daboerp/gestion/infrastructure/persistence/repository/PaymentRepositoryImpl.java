@@ -13,6 +13,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Implementation of PaymentRepository using Spring Data JPA.
+ * Bridges domain and infrastructure layers.
+ */
 @Repository
 public class PaymentRepositoryImpl implements PaymentRepository {
 

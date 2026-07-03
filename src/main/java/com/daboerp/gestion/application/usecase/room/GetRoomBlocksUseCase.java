@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Use case for retrieving blocks for a specific room, optionally filtering to active blocks.
+ */
 public class GetRoomBlocksUseCase {
 
     private final RoomBlockRepository roomBlockRepository;

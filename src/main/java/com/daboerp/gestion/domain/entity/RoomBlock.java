@@ -3,6 +3,10 @@ package com.daboerp.gestion.domain.entity;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing a period during which a room is blocked (unavailable).
+ * Used for maintenance, repairs, or other temporary unavailability reasons.
+ */
 public class RoomBlock {
     private final String id;
     private final String roomId;

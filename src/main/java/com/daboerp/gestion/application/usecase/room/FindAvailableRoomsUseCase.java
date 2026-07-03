@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Use case for finding available rooms based on date range and capacity.
+ */
 public class FindAvailableRoomsUseCase {
 
     private final RoomRepository roomRepository;

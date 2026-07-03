@@ -6,6 +6,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * DTO for updating an existing reservation.
+ */
 public record UpdateReservationRequest(
     LocalDate checkIn,
     LocalDate checkOut,

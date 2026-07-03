@@ -5,9 +5,12 @@ import com.daboerp.gestion.domain.repository.RoomTypeRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-
 import java.math.BigDecimal;
 
+/**
+ * Initializes seed data for development and non-test environments.
+ * Ensures baseline room types exist on application startup.
+ */
 @Component
 @Profile("!test")
 public class DataInitializer {

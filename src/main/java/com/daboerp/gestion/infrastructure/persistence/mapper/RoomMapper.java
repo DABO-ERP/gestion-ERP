@@ -10,6 +10,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Mapper between Room domain entity and JPA entity.
+ * Handles conversion between domain and infrastructure layers.
+ */
 @Component
 public class RoomMapper {
 

@@ -17,9 +17,12 @@ import com.daboerp.gestion.domain.strategy.pricing.*;
 import jakarta.validation.Validator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import java.util.List;
 
+/**
+ * Configuration class for application-level beans.
+ * Wires together command handlers, domain services, and infrastructure components.
+ */
 @Configuration
 public class ApplicationConfig {
 

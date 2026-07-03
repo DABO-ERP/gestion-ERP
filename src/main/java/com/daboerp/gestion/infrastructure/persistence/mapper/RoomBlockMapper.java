@@ -4,6 +4,10 @@ import com.daboerp.gestion.domain.entity.RoomBlock;
 import com.daboerp.gestion.infrastructure.persistence.entity.RoomBlockJpaEntity;
 import org.springframework.stereotype.Component;
 
+/**
+ * Mapper between RoomBlock domain entity and JPA entity.
+ * Handles conversion between domain and infrastructure layers.
+ */
 @Component
 public class RoomBlockMapper {
 

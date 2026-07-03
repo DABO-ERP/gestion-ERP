@@ -28,6 +28,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * REST controller for room management, room types, and availability.
+ */
 @RestController
 @RequestMapping("/api/v1")
 @Tag(name = "Room Management", description = "APIs for managing rooms, room types, and availability")

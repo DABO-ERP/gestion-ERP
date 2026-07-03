@@ -7,6 +7,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Use case for retrieving all room blocks within a date range.
+ */
 public class GetAllBlocksUseCase {
 
     private final RoomBlockRepository roomBlockRepository;

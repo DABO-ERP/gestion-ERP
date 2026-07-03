@@ -1,5 +1,8 @@
 package com.daboerp.gestion.domain.entity;
 
+/**
+ * Enumeration of supported payment methods.
+ */
 public enum PaymentMethod {
     CASH("Cash"),
     CARD("Card"),

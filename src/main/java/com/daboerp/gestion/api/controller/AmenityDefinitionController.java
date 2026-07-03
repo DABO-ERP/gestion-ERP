@@ -20,6 +20,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * REST controller for amenity definition management.
+ */
 @RestController
 @RequestMapping("/api/v1")
 @Tag(name = "Amenity Definitions", description = "APIs for managing the amenity catalog")

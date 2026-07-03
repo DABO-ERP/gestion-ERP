@@ -12,6 +12,10 @@ import com.daboerp.gestion.domain.valueobject.RoomTypeId;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Use case for creating a new room.
+ * Validates uniqueness of room number and ensures the referenced room type exists.
+ */
 public class CreateRoomUseCase {
 
     private final RoomRepository roomRepository;

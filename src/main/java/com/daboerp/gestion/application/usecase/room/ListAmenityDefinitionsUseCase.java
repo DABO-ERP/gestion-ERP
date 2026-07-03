@@ -6,6 +6,9 @@ import com.daboerp.gestion.domain.repository.AmenityDefinitionRepository;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Use case for listing all amenity definitions.
+ */
 public class ListAmenityDefinitionsUseCase {
 
     private final AmenityDefinitionRepository repository;

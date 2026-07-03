@@ -20,6 +20,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Use case for updating an existing reservation.
+ * Supports updating dates, quoted amount, source, guest, room, and additional guests.
+ */
 public class UpdateReservationUseCase {
 
     private final ReservationRepository reservationRepository;

@@ -11,6 +11,9 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Use case for blocking a room for a specified date range.
+ */
 public class BlockRoomUseCase {
 
     private final RoomBlockRepository roomBlockRepository;

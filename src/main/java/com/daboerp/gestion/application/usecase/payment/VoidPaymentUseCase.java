@@ -11,6 +11,10 @@ import com.daboerp.gestion.domain.valueobject.ReservationId;
 
 import java.util.Objects;
 
+/**
+ * Use case for voiding a payment.
+ * Prevents voiding payments on reservations that have already been checked in or out.
+ */
 public class VoidPaymentUseCase {
 
     private final PaymentRepository paymentRepository;

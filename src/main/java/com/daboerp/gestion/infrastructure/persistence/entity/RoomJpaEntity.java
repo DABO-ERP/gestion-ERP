@@ -12,6 +12,10 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * JPA entity for Room persistence.
+ * Framework-specific, isolated from domain.
+ */
 @Entity
 @Table(name = "rooms")
 @Getter

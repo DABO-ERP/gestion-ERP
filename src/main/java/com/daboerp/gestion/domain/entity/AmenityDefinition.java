@@ -4,6 +4,10 @@ import com.daboerp.gestion.domain.valueobject.AmenityDefinitionId;
 
 import java.util.Objects;
 
+/**
+ * Entity representing a type of amenity that can be assigned to rooms.
+ * Each amenity definition has a unique identifier and a descriptive name.
+ */
 public class AmenityDefinition {
 
     private final AmenityDefinitionId id;

@@ -6,6 +6,9 @@ import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 
+/**
+ * Request DTO for registering a new payment.
+ */
 public record RegisterPaymentRequest(
     @NotNull(message = "Amount is required")
     @Positive(message = "Amount must be positive")

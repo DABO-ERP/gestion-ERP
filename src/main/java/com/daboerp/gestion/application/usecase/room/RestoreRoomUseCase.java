@@ -8,6 +8,9 @@ import com.daboerp.gestion.domain.valueobject.RoomId;
 
 import java.util.Objects;
 
+/**
+ * Use case for restoring a soft-deleted room to available status.
+ */
 public class RestoreRoomUseCase {
 
     private final RoomRepository roomRepository;

@@ -12,6 +12,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Implementation of AmenityDefinitionRepository using Spring Data JPA.
+ * Bridges domain and infrastructure layers.
+ */
 @Repository
 public class AmenityDefinitionRepositoryImpl implements AmenityDefinitionRepository {
 

@@ -7,6 +7,9 @@ import com.daboerp.gestion.domain.valueobject.RoomId;
 
 import java.util.Objects;
 
+/**
+ * Use case for soft-deleting a room.
+ */
 public class DeleteRoomUseCase {
 
     private final RoomRepository roomRepository;

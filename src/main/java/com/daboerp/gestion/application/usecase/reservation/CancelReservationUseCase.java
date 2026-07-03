@@ -8,6 +8,9 @@ import com.daboerp.gestion.domain.valueobject.ReservationId;
 
 import java.util.Objects;
 
+/**
+ * Use case for cancelling a reservation.
+ */
 public class CancelReservationUseCase {
 
     private final ReservationRepository reservationRepository;

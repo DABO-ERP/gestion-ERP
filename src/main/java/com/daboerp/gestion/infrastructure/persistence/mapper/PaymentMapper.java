@@ -6,6 +6,10 @@ import com.daboerp.gestion.domain.valueobject.ReservationId;
 import com.daboerp.gestion.infrastructure.persistence.entity.PaymentJpaEntity;
 import org.springframework.stereotype.Component;
 
+/**
+ * Mapper between Payment domain entity and JPA entity.
+ * Handles conversion between domain and infrastructure layers.
+ */
 @Component
 public class PaymentMapper {
 

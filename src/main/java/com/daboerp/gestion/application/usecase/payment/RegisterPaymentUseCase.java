@@ -11,6 +11,10 @@ import com.daboerp.gestion.domain.valueobject.ReservationId;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+/**
+ * Use case for registering a payment against a reservation.
+ * Validates that the payment does not exceed the remaining balance.
+ */
 public class RegisterPaymentUseCase {
 
     private final PaymentRepository paymentRepository;

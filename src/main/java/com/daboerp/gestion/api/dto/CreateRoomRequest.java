@@ -3,6 +3,9 @@ package com.daboerp.gestion.api.dto;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
+/**
+ * Request DTO for creating a new room.
+ */
 public record CreateRoomRequest(
     @NotNull(message = "Room number is required")
     Integer roomNumber,

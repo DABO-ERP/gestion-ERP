@@ -31,6 +31,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * REST controller for reservation management.
+ */
 @RestController
 @RequestMapping("/api/v1/reservations")
 @Tag(name = "Reservation Management", description = "APIs for managing reservations, check-ins, and check-outs")

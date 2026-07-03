@@ -6,6 +6,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+/**
+ * Spring Data JPA repository for AmenityDefinition persistence.
+ */
 @Repository
 public interface AmenityDefinitionJpaRepository extends JpaRepository<AmenityDefinitionJpaEntity, String> {
     Optional<AmenityDefinitionJpaEntity> findByName(String name);

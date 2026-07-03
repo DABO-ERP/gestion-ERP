@@ -9,6 +9,9 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Spring Data JPA repository for RoomBlock persistence.
+ */
 @Repository
 public interface RoomBlockJpaRepository extends JpaRepository<RoomBlockJpaEntity, String> {
 

@@ -3,6 +3,9 @@ package com.daboerp.gestion.domain.valueobject;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Amenity definition identifier value object.
+ */
 public class AmenityDefinitionId {
 
     private final String value;

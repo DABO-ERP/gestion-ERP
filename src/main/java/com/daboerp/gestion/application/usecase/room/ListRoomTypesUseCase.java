@@ -6,6 +6,9 @@ import com.daboerp.gestion.domain.repository.RoomTypeRepository;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Use case for listing all room types.
+ */
 public class ListRoomTypesUseCase {
 
     private final RoomTypeRepository roomTypeRepository;

@@ -3,6 +3,9 @@ package com.daboerp.gestion.domain.valueobject;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Payment identifier value object.
+ */
 public class PaymentId {
 
     private final String value;

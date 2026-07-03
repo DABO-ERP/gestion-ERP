@@ -2,6 +2,10 @@ package com.daboerp.gestion.domain.valueobject;
 
 import java.util.Objects;
 
+/**
+ * Immutable value object representing an amenity name or description.
+ * Self-validating to ensure non-blank values.
+ */
 public class Amenity {
 
     private final String value;
